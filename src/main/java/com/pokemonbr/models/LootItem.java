@@ -2,9 +2,12 @@ package com.pokemonbr.models;
 
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * 战利品物品模型
@@ -89,6 +92,50 @@ public class LootItem {
 
     public List<String> getLore() {
         return lore;
+    }
+
+    /**
+     * 创建ItemStack物品
+     * @return ItemStack
+     */
+    public ItemStack createItemStack() {
+        Random random = new Random();
+        int amount = minAmount;
+        if (maxAmount > minAmount) {
+            amount = minAmount + random.nextInt(maxAmount - minAmount + 1);
+        }
+
+        if (isPixelmonItem) {
+            // TODO: 实现Pixelmon物品创建
+            // 目前返回空气，表示需要通过反射创建
+            return new ItemStack(Material.AIR);
+        }
+
+        ItemStack item = new ItemStack(material, amount);
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta != null) {
+            // 设置名称
+            if (name != null && !name.isEmpty()) {
+                meta.setDisplayName(name);
+            }
+
+            // 设置Lore
+            if (!lore.isEmpty()) {
+                meta.setLore(lore);
+            }
+
+            // 添加附魔
+            for (EnchantmentData enchantData : enchantments) {
+                if (enchantData != null && enchantData.getEnchantment() != null) {
+                    meta.addEnchant(enchantData.getEnchantment(), enchantData.getLevel(), true);
+                }
+            }
+
+            item.setItemMeta(meta);
+        }
+
+        return item;
     }
 
     /**

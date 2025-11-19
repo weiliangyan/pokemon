@@ -273,3 +273,21 @@ scoreboard:
     - '&7输入 /pbr lobby'
     - '&7返回大厅'
     - '&7&m------------------'
+
+# ==================== 错误消息 ====================
+error:
+  already-in-game: '&c你已经在游戏中了！'
+  not-in-game: '&c你不在任何游戏中！'
+  cannot-lobby-alive: '&c你还在游戏中，无法返回大厅！'
+  spectate-alive: '&c只有被淘汰的玩家才能使用观战传送功能！'
+  spectate-different-game: '&c该玩家不在你所在的游戏中！'
+  spectate-target-eliminated: '&c该玩家已被淘汰，无法观战！'
+  world-not-found: '&c游戏世界不存在！'
+
+# ==================== 大厅相关消息 ====================
+lobby:
+  teleported: '&a已返回大厅'
+
+# ==================== 观战相关消息 ====================
+spectate:
+  teleported: '&a已传送到 {player} 的位置'

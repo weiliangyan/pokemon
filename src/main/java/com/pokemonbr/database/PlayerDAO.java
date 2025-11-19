@@ -378,7 +378,7 @@ public class PlayerDAO {
                 if (lastResetCal.before(todayReset)) {
                     data.resetPlaysToday();
                     savePlayerDataAsync(data);
-                    plugin.getLogger().fine("玩家 " + data.getPlayerName() + " 的每日游玩次数已重置（每日固定时间模式）");
+                    plugin.getLogger().fine("玩家 " + data.getName() + " 的每日游玩次数已重置（每日固定时间模式）");
                     return true;
                 }
             }
@@ -389,7 +389,7 @@ public class PlayerDAO {
             if (hoursPassed >= resetHours) {
                 data.resetPlaysToday();
                 savePlayerDataAsync(data);
-                plugin.getLogger().fine("玩家 " + data.getPlayerName() + " 的每日游玩次数已重置（间隔小时模式）");
+                plugin.getLogger().fine("玩家 " + data.getName() + " 的每日游玩次数已重置（间隔小时模式）");
                 return true;
             }
         }

@@ -25,8 +25,7 @@ public class ConfigManager {
     private static final String[] CONFIG_FILES = {
             "config.yml",
             "messages.yml",
-            "rewards.yml",
-            "spawns.yml"
+            "rewards.yml"
     };
 
     public ConfigManager(Main plugin) {
@@ -166,11 +165,6 @@ public class ConfigManager {
         return getConfig("rewards.yml");
     }
 
-    /**
-     * 获取出生点配置
-     * @return FileConfiguration
-     */
-    public FileConfiguration getSpawnsConfig() {
-        return getConfig("spawns.yml");
-    }
+    // 注意：出生点配置已移动到各个世界独立配置文件中
+// 通过 WorldConfigManager.getSpawnConfig(worldName) 获取
 }

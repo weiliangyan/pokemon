@@ -1,7 +1,6 @@
 package com.pokemonbr.managers;
 
 import com.pokemonbr.Main;
-import com.pokemonbr.utils.TOMLManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -24,7 +23,8 @@ import java.util.*;
 /**
  * 物品管理GUI系统
  * 类似CMI的物品配置功能
- * 支持完整NBT保存到配置文件
+ * 支持完整NBT保存到loot-system.yml配置文件
+ * 移除了TOML依赖，统一使用YAML格式
  *
  * @author l1ang_Y5n
  * @qq 235236127
@@ -34,24 +34,18 @@ public class LootGUIManager {
     private final Main plugin;
     private FileConfiguration config;
     private File configFile;
-    private TOMLManager tomlManager;
+    private File lootSystemConfigFile;
+    private FileConfiguration lootSystemConfig;
 
     // 当前打开GUI的玩家 -> 分类名称
     private final Map<UUID, String> openGUIs;
 
-    // 简化的自定义品类管理器
-    private final SimpleCustomCategoryManager simpleCategoryManager;
-
     public LootGUIManager(Main plugin) {
         this.plugin = plugin;
         this.openGUIs = new HashMap<>();
-        this.simpleCategoryManager = new SimpleCustomCategoryManager(plugin);
-
-        // 初始化TOML管理器
-        this.tomlManager = new TOMLManager(plugin, new File(plugin.getDataFolder(), "tianchonxz.toml"));
 
         loadConfig();
-        plugin.getLogger().info("§a物品管理GUI系统已加载");
+        plugin.getLogger().info("§a物品管理GUI系统已加载 (基于loot-system.yml)");
     }
 
     /**
@@ -61,6 +55,7 @@ public class LootGUIManager {
         // 更新路径到 loot 子目录
         File lootDir = new File(plugin.getDataFolder(), "loot");
         configFile = new File(lootDir, "loot-gui.yml");
+        lootSystemConfigFile = new File(lootDir, "loot-system.yml");
 
         // 确保loot目录存在
         if (!lootDir.exists()) {
@@ -80,18 +75,19 @@ public class LootGUIManager {
             }
         }
 
-        // 释放 loot-system.yml（奖励组配置文件）
-        File lootSystemFile = new File(lootDir, "loot-system.yml");
-        if (!lootSystemFile.exists()) {
+        // 释放或创建 loot-system.yml（奖励组配置文件）
+        if (!lootSystemConfigFile.exists()) {
             try {
                 plugin.saveResource("loot/loot-system.yml", false);
                 plugin.getLogger().info("§a已从JAR包释放loot-system.yml到loot目录");
             } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("§eJAR包中未找到loot/loot-system.yml");
+                plugin.getLogger().warning("§eJAR包中未找到loot/loot-system.yml，创建默认配置");
+                createEmptyLootSystemFile();
             }
         }
 
         config = YamlConfiguration.loadConfiguration(configFile);
+        lootSystemConfig = YamlConfiguration.loadConfiguration(lootSystemConfigFile);
         plugin.getLogger().info("§a已加载LootGUI配置文件");
     }
 
@@ -132,20 +128,58 @@ public class LootGUIManager {
         config.set("gui.messages.saved", "&a成功保存 {count} 个物品到 {category}");
         config.set("gui.messages.cleared", "&c已清空 {category} 的所有物品");
 
-        // 添加categories节点以避免警告
-        config.createSection("categories.jichu.items");
-        config.createSection("categories.youpin.items");
-        config.createSection("categories.jipin.items");
-        config.createSection("categories.pokemon.items");
-
-        config.set("auto-detection.config-file", "loot-system.yml");
-        config.set("auto-detection.pattern", "^[a-zA-Z0-9_]+$");
-
         config.set("permissions.open-gui", "pbr.lootgui.open");
         config.set("permissions.edit-groups", "pbr.lootgui.edit");
         config.set("permissions.admin", "pbr.lootgui.admin");
 
         plugin.getLogger().info("§a已创建默认LootGUI配置");
+    }
+
+    /**
+     * 创建空的loot-system.yml文件
+     */
+    private void createEmptyLootSystemFile() {
+        try {
+            if (lootSystemConfigFile.createNewFile()) {
+                plugin.getLogger().info("§a已创建空loot-system.yml配置文件");
+
+                // 写入默认内容
+                FileConfiguration config = new YamlConfiguration();
+                createDefaultLootSystemConfig(config);
+                config.save(lootSystemConfigFile);
+            }
+        } catch (IOException e) {
+            plugin.getLogger().severe("§c创建loot-system.yml配置文件失败");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 创建默认的loot-system.yml配置
+     */
+    private void createDefaultLootSystemConfig(FileConfiguration config) {
+        config.set("普通.MinSlots", 1);
+        config.set("普通.MaxSlots", 3);
+        config.set("普通.MinStack", 1);
+        config.set("普通.MaxStack", 1);
+        config.set("普通.Weight", 10);
+        config.set("普通.enabled", true);
+
+        config.set("优品.MinSlots", 1);
+        config.set("优品.MaxSlots", 2);
+        config.set("优品.MinStack", 1);
+        config.set("优品.MaxStack", 1);
+        config.set("优品.Weight", 5);
+        config.set("优品.enabled", true);
+
+        config.set("极品.MinSlots", 1);
+        config.set("极品.MaxSlots", 1);
+        config.set("极品.MinStack", 1);
+        config.set("极品.MaxStack", 1);
+        config.set("极品.Weight", 2);
+        config.set("极品.enabled", true);
+
+        plugin.getLogger().info("§a已创建默认loot-system配置");
     }
 
     /**
@@ -165,40 +199,40 @@ public class LootGUIManager {
      */
     public void reloadConfig() {
         config = YamlConfiguration.loadConfiguration(configFile);
+        lootSystemConfig = YamlConfiguration.loadConfiguration(lootSystemConfigFile);
         plugin.getLogger().info("§a物品管理GUI配置已重载");
     }
 
     /**
      * 打开物品管理GUI
      * @param player 玩家
-     * @param category 分类名称 (如 "youpin", "jipin", "putong")
+     * @param category 分类名称 (如 "优品", "极品", "普通")
      */
     public void openGUI(Player player, String category) {
-        // 检查分类是否存在
-        if (!config.contains("categories." + category)) {
+        // 检查分类是否存在（从loot-system.yml读取）
+        if (!lootSystemConfig.contains(category)) {
             player.sendMessage(ChatColor.RED + "分类 " + category + " 不存在！");
-            player.sendMessage(ChatColor.GRAY + "可用分类: youpin, jipin, putong");
+            player.sendMessage(ChatColor.GRAY + "可用分类: " + String.join(", ", getCategories()));
             return;
         }
 
         // 检查权限
-        String permission = config.getString("categories." + category + ".permission", "");
+        String permission = config.getString("permissions.edit-groups", "pbr.lootgui.edit");
         if (!permission.isEmpty() && !player.hasPermission(permission)) {
-            String message = config.getString("gui.messages.no-permission", "&c你没有权限打开此物品管理界面");
+            String message = "&c你没有权限打开此物品管理界面";
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
             return;
         }
 
         // 创建GUI
-        String displayName = config.getString("categories." + category + ".display-name", category);
-        String titlePrefix = config.getString("gui.title-prefix", "&6&l物品管理 &8» &e");
-        String title = ChatColor.translateAlternateColorCodes('&', titlePrefix + displayName);
+        String titlePrefix = config.getString("gui.title-prefix", "&6&l奖励组管理 &8» &e");
+        String title = ChatColor.translateAlternateColorCodes('&', titlePrefix + category);
 
         int size = config.getInt("gui.size", 54);
         Inventory gui = Bukkit.createInventory(null, size, title);
 
-        // 加载已保存的物品
-        List<String> itemsNBT = config.getStringList("categories." + category + ".items");
+        // 加载已保存的物品（从loot-system.yml）
+        List<String> itemsNBT = lootSystemConfig.getStringList(category + ".items");
         for (int i = 0; i < itemsNBT.size() && i < size; i++) {
             ItemStack item = itemFromBase64(itemsNBT.get(i));
             if (item != null) {
@@ -211,13 +245,13 @@ public class LootGUIManager {
         openGUIs.put(player.getUniqueId(), category);
 
         // 发送消息
-        String message = config.getString("gui.messages.opened", "&a已打开 &e{category} &a物品管理界面");
-        message = message.replace("{category}", displayName);
+        String message = config.getString("gui.messages.opened", "&a已打开 {category} 奖励组管理界面");
+        message = message.replace("{category}", category);
         player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }
 
     /**
-     * 保存GUI中的物品到配置（同时保存到YAML和TOML）
+     * 保存GUI中的物品到loot-system.yml配置
      * @param player 玩家
      * @param inventory GUI物品栏
      */
@@ -237,40 +271,44 @@ public class LootGUIManager {
 
         int count = items.size();
 
-        // 保存到YAML配置（向后兼容）
+        // 保存到loot-system.yml配置
         if (!items.isEmpty()) {
             List<String> itemData = new ArrayList<>();
             for (ItemStack item : items) {
-                itemData.add(itemToBase64(item));
+                String base64 = itemToBase64(item);
+                if (base64 != null) {
+                    itemData.add(base64);
+                }
             }
-            config.set("categories." + category, itemData);
-            saveConfig();
-        }
 
-        // 保存到TOML管理器（支持自动识别）
-        if (tomlManager != null && !items.isEmpty()) {
-            tomlManager.addItemsToCategory(category, items);
-            tomlManager.saveConfig(true); // 保存到TOML文件
-        }
-
-        // 同时保存到简化自定义品类管理器（兼容性）
-        if (simpleCategoryManager != null) {
-            for (ItemStack item : items) {
-                simpleCategoryManager.addItemToCategory(category, item);
-            }
-            simpleCategoryManager.saveConfig();
+            // 保存物品数据到loot-system.yml
+            lootSystemConfig.set(category + ".items", itemData);
+            saveLootSystemConfig();
         }
 
         // 发送消息
-        player.sendMessage(ChatColor.GREEN + "✓ 成功保存 " + count + " 个物品到品类: " + category);
-        player.sendMessage(ChatColor.YELLOW + "配置已保存到 YAML 和 TOML 文件");
-        player.sendMessage(ChatColor.GRAY + "TOML配置支持概率填充：" + getFillChanceInfo(category));
+        String message = config.getString("gui.messages.saved", "&a成功保存 {count} 个物品到 {category}");
+        message = message.replace("{count}", String.valueOf(count)).replace("{category}", category);
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+
+        player.sendMessage(ChatColor.YELLOW + "配置已保存到 loot-system.yml 文件");
+        player.sendMessage(ChatColor.GRAY + "该分类的配置信息：" + getFillChanceInfo(category));
 
         // 移除记录
         openGUIs.remove(player.getUniqueId());
 
-        if (config.getBoolean("advanced.debug", false)) {
-            plugin.getLogger().info("§e[Debug] 玩家 " + player.getName() + " 保存了 " + count + " 个物品到 " + category);
+        plugin.getLogger().info("§a[GUI保存] 玩家 " + player.getName() + " 保存了 " + count + " 个物品到 " + category);
+    }
+
+    /**
+     * 保存loot-system.yml配置文件
+     */
+    private void saveLootSystemConfig() {
+        try {
+            lootSystemConfig.save(lootSystemConfigFile);
+        } catch (IOException e) {
+            plugin.getLogger().severe("§c保存 loot-system.yml 失败: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -280,17 +318,16 @@ public class LootGUIManager {
      * @param category 分类名称
      */
     public void clearCategory(Player player, String category) {
-        if (!config.contains("categories." + category)) {
+        if (!lootSystemConfig.contains(category)) {
             player.sendMessage(ChatColor.RED + "分类 " + category + " 不存在！");
             return;
         }
 
-        config.set("categories." + category + ".items", new ArrayList<>());
-        saveConfig();
+        lootSystemConfig.set(category + ".items", new ArrayList<>());
+        saveLootSystemConfig();
 
-        String displayName = config.getString("categories." + category + ".display-name", category);
-        String message = config.getString("gui.messages.cleared", "&c已清空 &e{category} &c的所有物品");
-        message = message.replace("{category}", displayName);
+        String message = config.getString("gui.messages.cleared", "&c已清空 {category} 的所有物品");
+        message = message.replace("{category}", category);
         player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }
 
@@ -302,14 +339,9 @@ public class LootGUIManager {
     public List<ItemStack> getItems(String category) {
         List<ItemStack> items = new ArrayList<>();
 
-        // 优先从TOML配置中获取
-        if (simpleCategoryManager != null && simpleCategoryManager.hasCategory(category)) {
-            items = simpleCategoryManager.getItemsFromCategory(category);
-        }
-
-        // 如果TOML中没有，回退到YAML配置
-        if (items.isEmpty() && config.contains("categories." + category)) {
-            List<String> itemsNBT = config.getStringList("categories." + category + ".items");
+        // 从loot-system.yml中获取物品
+        if (lootSystemConfig.contains(category + ".items")) {
+            List<String> itemsNBT = lootSystemConfig.getStringList(category + ".items");
             for (String nbt : itemsNBT) {
                 ItemStack item = itemFromBase64(nbt);
                 if (item != null) {
@@ -322,29 +354,25 @@ public class LootGUIManager {
     }
 
     /**
-     * 获取所有分类名称（自动识别TOML和YAML配置）
+     * 获取所有分类名称（从loot-system.yml读取）
      * @return 分类列表
      */
     public Set<String> getCategories() {
         Set<String> allCategories = new HashSet<>();
 
-        // 从YAML配置获取分类
-        ConfigurationSection section = config.getConfigurationSection("categories");
-        if (section != null) {
-            allCategories.addAll(section.getKeys(false));
-        }
-
-        // 从TOML配置获取分类
-        if (tomlManager != null) {
-            tomlManager.readCategories(); // 重载TOML配置
-            allCategories.addAll(tomlManager.getCategoryNames());
+        // 从loot-system.yml获取分类
+        for (String key : lootSystemConfig.getKeys(false)) {
+            // 排除配置项，只获取分类名称
+            if (!key.equals("settings") && !key.equals("config") && lootSystemConfig.contains(key + ".items")) {
+                allCategories.add(key);
+            }
         }
 
         // 如果没有配置任何分类，使用默认分类
         if (allCategories.isEmpty()) {
-            allCategories.add("jichu");
-            allCategories.add("youpin");
-            allCategories.add("xiyou");
+            allCategories.add("普通");
+            allCategories.add("优品");
+            allCategories.add("极品");
         }
 
         return allCategories;
@@ -357,25 +385,26 @@ public class LootGUIManager {
      * @return 概率信息字符串
      */
     private String getFillChanceInfo(String category) {
-        if (tomlManager != null) {
-            // 从TOML管理器获取概率信息
-            for (TOMLManager.CategoryInfo catInfo : tomlManager.getCategoryInfos()) {
-                if (catInfo.name.equalsIgnoreCase(category)) {
-                    return String.format("填充概率 %.0f%%, 格数 %d-%d, 堆叠 %d-%d",
-                        catInfo.fillChance * 100, catInfo.minSlots, catInfo.maxSlots,
-                        catInfo.minStack, catInfo.maxStack);
-                }
-            }
+        // 从loot-system.yml获取配置信息
+        if (lootSystemConfig.contains(category)) {
+            int minSlots = lootSystemConfig.getInt(category + ".MinSlots", 1);
+            int maxSlots = lootSystemConfig.getInt(category + ".MaxSlots", 3);
+            int minStack = lootSystemConfig.getInt(category + ".MinStack", 1);
+            int maxStack = lootSystemConfig.getInt(category + ".MaxStack", 1);
+            int weight = lootSystemConfig.getInt(category + ".Weight", 1);
+
+            return String.format("权重 %d, 格数 %d-%d, 堆叠 %d-%d",
+                weight, minSlots, maxSlots, minStack, maxStack);
         }
         return "默认配置";
     }
 
     /**
-     * 获取TOML管理器实例
-     * @return TOMLManager
+     * 获取loot-system.yml配置文件实例
+     * @return FileConfiguration
      */
-    public TOMLManager getTomlManager() {
-        return tomlManager;
+    public FileConfiguration getLootSystemConfig() {
+        return lootSystemConfig;
     }
 
     /**

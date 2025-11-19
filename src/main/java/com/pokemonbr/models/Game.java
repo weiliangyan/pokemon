@@ -255,6 +255,18 @@ public class Game {
         this.endTime = endTime;
     }
 
+    /**
+     * 获取游戏进行时间（以tick为单位，20tick=1秒）
+     * @return 游戏进行时间
+     */
+    public int getGameTime() {
+        if (startTime <= 0) {
+            return 0;
+        }
+        long currentTime = endTime > 0 ? endTime : System.currentTimeMillis();
+        return (int) ((currentTime - startTime) / 50); // 转换为tick
+    }
+
     public int getTotalPlayerCount() {
         return players.size();
     }

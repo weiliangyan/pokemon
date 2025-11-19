@@ -23,8 +23,8 @@ public class AdminCommands implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        // 检查权限（使用权限管理器）
-        if (sender instanceof Player && !plugin.getPermissionManager().hasPermission((Player) sender, "pbr.admin")) {
+        // 检查权限
+        if (!sender.hasPermission("pbr.admin")) {
             sender.sendMessage(getMessage("no-permission"));
             return true;
         }
@@ -120,8 +120,8 @@ public class AdminCommands implements CommandExecutor {
      * 强制结束游戏
      */
     private boolean handleForceStop(CommandSender sender, String[] args) {
-        // 使用权限管理器检查权限
-        if (sender instanceof Player && !plugin.getPermissionManager().hasPermission((Player) sender, "pbr.admin.stop")) {
+        // 检查权限
+        if (!sender.hasPermission("pbr.admin.stop")) {
             sender.sendMessage(getMessage("no-permission"));
             return true;
         }
@@ -163,11 +163,7 @@ public class AdminCommands implements CommandExecutor {
                 plugin.getLogger().info("§a已重载所有世界配置");
             }
 
-            // 5. 重载自定义品类配置
-            if (plugin.getCustomCategoryManager() != null) {
-                plugin.getCustomCategoryManager().reloadConfig();
-                plugin.getLogger().info("§a已重载自定义品类配置");
-            }
+            // 5. 自定义品类配置已整合到LootGUI中，通过LootGUI重载即可
 
             // 6. 重载战利品箱配置
             if (plugin.getLootChestManager() != null) {

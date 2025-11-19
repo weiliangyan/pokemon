@@ -31,8 +31,7 @@ public class Main extends JavaPlugin {
     private InviteManager inviteManager;
     private LootChestManager lootChestManager;
     private LootGUIManager lootGUIManager;
-    private CustomCategoryManager customCategoryManager;
-    private com.pokemonbr.managers.SimpleCustomCategoryManager simpleCustomCategoryManager;
+    // 已移除：自定义品类管理器已整合到LootGUI中
     private WorldConfigManager worldConfigManager;
     private PermissionManager permissionManager;
     private com.pokemonbr.listeners.PixelmonBattleListener pixelmonBattleListener;
@@ -134,11 +133,9 @@ public class Main extends JavaPlugin {
             getLogger().info("§e[13/15] 正在初始化邀请管理器...");
             inviteManager = new InviteManager(this);
 
-            // 14. 初始化战利品系统（GUI + 箱子 + 品类管理）
+            // 14. 初始化战利品系统（GUI + 箱子，品类管理已整合到LootGUI）
             getLogger().info("§e[14/15] 正在初始化战利品系统...");
             lootGUIManager = new LootGUIManager(this);
-            customCategoryManager = new CustomCategoryManager(this);
-            simpleCustomCategoryManager = new com.pokemonbr.managers.SimpleCustomCategoryManager(this);
             lootChestManager = new LootChestManager(this);
 
             // 15. 注册指令和监听器
@@ -436,9 +433,7 @@ public class Main extends JavaPlugin {
     }
 
     
-    public SimpleCustomCategoryManager getSimpleCustomCategoryManager() {
-        return simpleCustomCategoryManager;
-    }
+    // 已移除：SimpleCustomCategoryManager getter
 
     public WorldConfigManager getWorldConfigManager() {
         return worldConfigManager;
@@ -451,12 +446,7 @@ public class Main extends JavaPlugin {
         return permissionManager;
     }
 
-    /**
-     * 获取自定义品类管理器
-     */
-    public CustomCategoryManager getCustomCategoryManager() {
-        return customCategoryManager;
-    }
+    // 已移除：CustomCategoryManager getter
 
     /**
      * 获取Pixelmon战斗监听器

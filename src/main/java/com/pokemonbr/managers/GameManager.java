@@ -267,31 +267,8 @@ public class GameManager {
         }
     }
 
-    /**
-     * 获取出生点列表
-     * @param world 世界
-     * @return 出生点列表
-     */
-    private List<Location> getSpawnLocations(World world) {
-        List<Location> spawns = new ArrayList<>();
-        FileConfiguration config = plugin.getConfigManager().getSpawnsConfig();
-
-        for (String key : config.getConfigurationSection("spawns").getKeys(false)) {
-            if (!config.getBoolean("spawns." + key + ".enabled", true)) {
-                continue;
-            }
-
-            double x = config.getDouble("spawns." + key + ".x");
-            double y = config.getDouble("spawns." + key + ".y");
-            double z = config.getDouble("spawns." + key + ".z");
-            float yaw = (float) config.getDouble("spawns." + key + ".yaw");
-            float pitch = (float) config.getDouble("spawns." + key + ".pitch");
-
-            spawns.add(new Location(world, x, y, z, yaw, pitch));
-        }
-
-        return spawns;
-    }
+    // 注意：出生点逻辑已迁移到 WorldConfigManager 中管理
+// 通过 plugin.getWorldConfigManager().getSpawnLocations(worldName) 获取
 
     /**
      * 获取随机出生点（在区域内）

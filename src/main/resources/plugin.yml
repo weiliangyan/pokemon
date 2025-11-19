@@ -67,7 +67,7 @@ commands:
 
   pbradmin:
     description: 管理员指令
-    usage: /pbradmin <start|stop|reset|setlobby|setspawn|reload>
+    usage: /pbradmin <start|stop|reload|setlobby|setcenter|setspawn|backup|restore>
     permission: pbr.admin
     permission-message: "&c你没有管理员权限"
     aliases: [pbra]

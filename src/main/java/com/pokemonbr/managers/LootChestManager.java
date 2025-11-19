@@ -3,7 +3,6 @@ package com.pokemonbr.managers;
 import com.pokemonbr.Main;
 import com.pokemonbr.models.LootCategory;
 import com.pokemonbr.models.LootItem;
-import com.pokemonbr.models.CustomCategory;
 import org.bukkit.*;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
@@ -15,6 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 战利品箱管理器
@@ -27,15 +27,17 @@ public class LootChestManager {
 
     private final Main plugin;
     private final Map<String, LootCategory> categories;
-    private final CustomCategoryManager customCategoryManager;
     private final Random random;
 
     // 全局设置
     private boolean enabled;
-        private boolean clearBeforeFill;
+    private boolean clearBeforeFill;
 
-    // GUI管理的物品缓存
-    private final Map<String, List<ItemStack>> guiManagedItems;
+    // loot-system.yml 奖励组缓存
+    private final Map<String, LootCategory> lootSystemCategories = new HashMap<>();
+
+    // GUI管理的物品缓存（中文名称）
+    private final Map<String, List<ItemStack>> guiManagedItems = new HashMap<>();
 
     // 多世界配置管理器
     private WorldConfigManager worldConfigManager;
@@ -44,9 +46,7 @@ public class LootChestManager {
         this.plugin = plugin;
         this.categories = new HashMap<>();
         this.random = new Random();
-        this.customCategoryManager = plugin.getCustomCategoryManager();
-        this.guiManagedItems = new HashMap<>();
-        this.worldConfigManager = new WorldConfigManager(plugin);
+        this.worldConfigManager = plugin.getWorldConfigManager();
 
         loadLootConfig();
     }
@@ -55,97 +55,85 @@ public class LootChestManager {
      * 加载战利品配置
      */
     private void loadLootConfig() {
-        // 使用新的奖励组系统，不再依赖YAML配置
-        // 配置现在通过customCategoryManager管理
-        FileConfiguration config = plugin.getConfigManager().getMainConfig();
+        try {
+            // 读取 loot-system.yml 配置文件
+            FileConfiguration config = plugin.getConfigManager().getConfig("loot/loot-system.yml");
 
-        // 加载全局设置
-        enabled = config.getBoolean("global.enabled", true);
-        clearBeforeFill = config.getBoolean("global.clear-before-fill", true);
+            // 加载全局设置
+            enabled = config.getBoolean("global.enabled", true);
+            clearBeforeFill = config.getBoolean("global.clear-before-fill", true);
 
-        // 加载GUI管理的物品
-        loadGUIManagedItems();
+            // 清空之前的缓存
+            categories.clear();
+            lootSystemCategories.clear();
 
-        // 加载物品品类（loot.yml 的传统配置）
-        ConfigurationSection categoriesSection = config.getConfigurationSection("categories");
-        if (categoriesSection == null) {
-            plugin.getLogger().warning("§c战利品配置中未找到 categories 节点！");
-            return;
-        }
-
-        for (String categoryName : categoriesSection.getKeys(false)) {
-            int weight = config.getInt("categories." + categoryName + ".weight", 10);
-            LootCategory category = new LootCategory(categoryName, weight);
-
-            // 加载该品类的物品
-            List<Map<?, ?>> itemsList = config.getMapList("categories." + categoryName + ".items");
-
-            for (Map<?, ?> itemMap : itemsList) {
-                try {
-                    // 解析物品数据
-                    String materialName = (String) itemMap.get("material");
-
-                    Object nameObj = itemMap.get("name");
-                    String name = nameObj != null ? (String) nameObj : "";
-
-                    @SuppressWarnings("unchecked")
-                    Map<String, Integer> amountMap = (Map<String, Integer>) itemMap.get("amount");
-                    int minAmount = amountMap.getOrDefault("min", 1);
-                    int maxAmount = amountMap.getOrDefault("max", 1);
-
-                    Object chanceObj = itemMap.get("chance");
-                    int chance = chanceObj != null ? ((Number) chanceObj).intValue() : 100;
-
-                    // 解析附魔
-                    List<LootItem.EnchantmentData> enchantments = new ArrayList<>();
-                    @SuppressWarnings("unchecked")
-                    List<String> enchantList = (List<String>) itemMap.get("enchantments");
-                    if (enchantList != null) {
-                        for (String enchantStr : enchantList) {
-                            String[] parts = enchantStr.split(":");
-                            if (parts.length == 2) {
-                                try {
-                                    Enchantment enchant = Enchantment.getByName(parts[0]);
-                                    int level = Integer.parseInt(parts[1]);
-                                    if (enchant != null) {
-                                        enchantments.add(new LootItem.EnchantmentData(enchant, level));
-                                    }
-                                } catch (Exception e) {
-                                    plugin.getLogger().warning("§c无效的附魔配置: " + enchantStr);
-                                }
-                            }
-                        }
-                    }
-
-                    // 解析Lore
-                    @SuppressWarnings("unchecked")
-                    List<String> lore = (List<String>) itemMap.get("lore");
-
-                    // 创建战利品物品
-                    LootItem lootItem;
-
-                    // 检查是否为Pixelmon物品
-                    if (materialName.startsWith("PIXELMON:")) {
-                        // Pixelmon物品
-                        String pixelmonItemId = materialName.substring(9); // 移除 "PIXELMON:" 前缀
-                        lootItem = new LootItem(pixelmonItemId, name, minAmount, maxAmount, chance, enchantments, lore);
-                    } else {
-                        // 普通Minecraft物品
-                        Material material = Material.valueOf(materialName);
-                        lootItem = new LootItem(material, name, minAmount, maxAmount, chance, enchantments, lore);
-                    }
-
-                    category.addItem(lootItem);
-
-                } catch (Exception e) {
-                    plugin.getLogger().warning("§c解析战利品物品失败: " + e.getMessage());
+            // 加载奖励组
+            for (String groupName : config.getKeys(false)) {
+                // 跳过全局配置节点
+                if (groupName.equals("global") || groupName.equals("chest-types") ||
+                    groupName.equals("chest-identification") || groupName.equals("fill-rules") ||
+                    groupName.equals("fallback-items")) {
+                    continue;
                 }
+
+                // 检查奖励组是否启用
+                if (!config.getBoolean(groupName + ".enabled", true)) {
+                    continue;
+                }
+
+                // 获取奖励组权重（用于 weighted random）
+                int fillChance = (int) (config.getDouble(groupName + ".fill-chance", 0.5) * 100);
+
+                // 获取物品数量范围
+                int minSlots = config.getInt(groupName + ".min-slots", 2);
+                int maxSlots = config.getInt(groupName + ".max-slots", 6);
+                int minStack = config.getInt(groupName + ".min-stack", 1);
+                int maxStack = config.getInt(groupName + ".max-stack", 8);
+
+                // 创建奖励组
+                LootCategory category = new LootCategory(groupName, fillChance, minSlots, maxSlots, minStack, maxStack);
+
+                // 加载该奖励组的物品
+                List<Map<?, ?>> itemsList = config.getMapList(groupName + ".items");
+
+                for (Map<?, ?> itemMap : itemsList) {
+                    try {
+                        String materialName = (String) itemMap.get("material");
+                        if (materialName == null) {
+                            plugin.getLogger().warning("§c奖励组 " + groupName + " 中存在无材质的物品配置，已跳过");
+                            continue;
+                        }
+
+                        // 解析物品（现在只有材质字段）
+                        LootItem lootItem;
+                        if (materialName.startsWith("PIXELMON:")) {
+                            // Pixelmon物品
+                            String pixelmonItemId = materialName.substring(9);
+                            lootItem = new LootItem(pixelmonItemId, "", 1, 1, 100, new ArrayList<>(), new ArrayList<>());
+                        } else {
+                            // 普通Minecraft物品
+                            Material material = Material.valueOf(materialName);
+                            lootItem = new LootItem(material, "", 1, 1, 100, new ArrayList<>(), new ArrayList<>());
+                        }
+
+                        category.addItem(lootItem);
+
+                    } catch (Exception e) {
+                        plugin.getLogger().warning("§c解析奖励组 " + groupName + " 中的物品失败: " + e.getMessage());
+                    }
+                }
+
+                // 同时添加到两个缓存中（保持向后兼容）
+                categories.put(groupName, category);
+                lootSystemCategories.put(groupName, category);
             }
 
-            categories.put(categoryName, category);
-        }
+            plugin.getLogger().info("§a已加载 " + lootSystemCategories.size() + " 个 loot-system 奖励组");
 
-        plugin.getLogger().info("§a已加载 " + categories.size() + " 个战利品品类");
+        } catch (Exception e) {
+            plugin.getLogger().severe("§c加载 loot-system.yml 配置文件失败: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -247,14 +235,9 @@ public class LootChestManager {
         // 物品数量现在由奖励组系统管理，不再使用固定数量
         // 通过奖励组的 minslots/maxslots 控制填充数量
 
-        // 尝试使用自定义品类系统 (优先级最高)
-        if (tryCustomCategoryFill(inventory, chestType, worldName)) {
-            return; // 自定义品类系统成功填充
-        }
-
-        // 尝试使用增强GUI系统 (物品数量由奖励组控制)
+        // 使用 loot-system.yml 填充系统 (统一入口)
         if (tryEnhancedGUIFill(inventory, chestType)) {
-            return; // 增强系统成功填充
+            return; // loot-system 系统成功填充
         }
 
         // 回退到传统GUI系统
@@ -266,142 +249,7 @@ public class LootChestManager {
         fallbackToConfigFill(inventory);
     }
 
-    /**
-     * 尝试使用自定义品类系统填充
-     * 基于TOML配置文件中的自定义品类定义
-     */
-    private boolean tryCustomCategoryFill(Inventory inventory, String chestType, String worldName) {
-        try {
-            // 检查是否有自定义品类管理器
-            if (customCategoryManager == null) {
-                return false;
-            }
-
-            // 获取世界的箱子权重配置
-            Map<String, Integer> chestWeights = getWorldChestWeights(worldName, chestType);
-
-            // 根据权重选择一个奖励组
-            String selectedGroup = selectRewardGroupByWeight(chestWeights);
-            if (selectedGroup == null) {
-                return false;
-            }
-
-            // 尝试匹配自定义品类 (jichu, youpin, xiyou 或其他自定义品类)
-            CustomCategory category = customCategoryManager.getCategory(selectedGroup);
-            if (category == null || !category.isEnabled() || !category.shouldFill()) {
-                return false;
-            }
-
-            // 使用自定义品类逻辑填充箱子
-            return fillWithCustomCategory(inventory, category);
-
-        } catch (Exception e) {
-            plugin.getLogger().warning("§c自定义品类系统填充失败: " + e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * 使用自定义品类填充箱子
-     */
-    private boolean fillWithCustomCategory(Inventory inventory, CustomCategory category) {
-        // 获取品类配置
-        int slotCount = category.getRandomSlotCount();  // 随机填充格数
-        int stackCount = category.getRandomStackCount();  // 随机堆叠数量
-
-        if (slotCount <= 0 || stackCount <= 0) {
-            return false;
-        }
-
-        // 获取物品列表 (使用默认物品，后续可以扩展为使用GUI物品)
-        List<String> itemIds = new ArrayList<>();
-        if (customCategoryManager != null) {
-            itemIds = customCategoryManager.getDefaultItems();
-        }
-        if (itemIds.isEmpty()) {
-            return false;
-        }
-
-        List<ItemStack> itemsToPlace = new ArrayList<>();
-
-        // 随机选择物品并创建ItemStack
-        for (int i = 0; i < slotCount; i++) {
-            String itemId = itemIds.get(random.nextInt(itemIds.size()));
-            ItemStack item = createItemFromId(itemId, stackCount);
-            if (item != null) {
-                itemsToPlace.add(item);
-            }
-        }
-
-        if (itemsToPlace.isEmpty()) {
-            return false;
-        }
-
-        // 放置物品到箱子
-        placeItemsInInventory(inventory, itemsToPlace);
-
-        if (plugin.getConfig().getBoolean("debug.enabled", false)) {
-            plugin.getLogger().info("§e[Debug] 使用自定义品类 " + category.getName() + " 填充箱子: " +
-                itemsToPlace.size() + " 个物品 (格数: " + slotCount + ", 堆叠: " + stackCount + ")");
-        }
-
-        return true;
-    }
-
-    /**
-     * 根据物品ID创建ItemStack
-     */
-    private ItemStack createItemFromId(String itemId, int amount) {
-        // 完善的参数验证
-        if (itemId == null || itemId.trim().isEmpty()) {
-            return null;
-        }
-
-        if (amount <= 0) {
-            return null;
-        }
-
-        try {
-            String[] parts = itemId.split(":");
-            if (parts.length < 2) {
-                return null;
-            }
-
-            String namespace = parts[0];
-            String itemName = parts[1];
-
-            if (itemName == null || itemName.trim().isEmpty()) {
-                return null;
-            }
-
-            Material material = Material.matchMaterial(itemName.toUpperCase());
-            if (material == null) {
-                // 尝试一些常见的映射
-                material = getMaterialByName(itemName);
-            }
-
-            if (material == null || material == Material.AIR) {
-                return null;
-            }
-
-            ItemStack item = new ItemStack(material);
-            item.setAmount(Math.min(amount, item.getMaxStackSize()));
-
-            // 设置物品元数据（可选）
-            ItemMeta meta = item.getItemMeta();
-            if (meta != null) {
-                // 可以在这里添加自定义Lore等
-                meta.setDisplayName(ChatColor.YELLOW + "天充箱子物品");
-                item.setItemMeta(meta);
-            }
-
-            return item;
-
-        } catch (Exception e) {
-            plugin.getLogger().warning("§c无法创建物品: " + itemId + " - " + e.getMessage());
-            return null;
-        }
-    }
+    // TOML自定义品类系统已移除，现在统一使用 loot-system.yml
 
     /**
      * 根据名称获取Material（简单的映射）
@@ -438,11 +286,141 @@ public class LootChestManager {
     }
 
     /**
-     * 尝试使用增强GUI系统填充
+     * 尝试使用 loot-system.yml 填充
      */
     private boolean tryEnhancedGUIFill(Inventory inventory, String chestType) {
-        // 增强GUI系统暂时禁用，直接返回false
-        return false;
+        try {
+            // 读取 loot-system.yml 中的箱子类型配置
+            FileConfiguration config = plugin.getConfigManager().getConfig("loot/loot-system.yml");
+            ConfigurationSection chestTypesSection = config.getConfigurationSection("chest-types");
+
+            if (chestTypesSection == null) {
+                plugin.getLogger().warning("§cloot-system.yml 中未找到 chest-types 配置，使用默认配置");
+                return tryDefaultLootSystemFill(inventory);
+            }
+
+            ConfigurationSection chestTypeSection = chestTypesSection.getConfigurationSection(chestType);
+            if (chestTypeSection == null) {
+                plugin.getLogger().warning("§c未找到箱子类型 " + chestType + " 的配置，使用默认配置");
+                return tryDefaultLootSystemFill(inventory);
+            }
+
+            // 获取该箱子类型的奖励组权重配置
+            Map<String, Object> rewardGroups = chestTypeSection.getConfigurationSection("reward-groups").getValues(false);
+
+            if (rewardGroups.isEmpty()) {
+                plugin.getLogger().warning("§c箱子类型 " + chestType + " 没有配置奖励组，使用默认配置");
+                return tryDefaultLootSystemFill(inventory);
+            }
+
+            // 加权随机选择一个奖励组
+            String selectedGroup = selectWeightedRewardGroup(rewardGroups);
+            if (selectedGroup == null) {
+                return false;
+            }
+
+            // 获取选中的奖励组
+            LootCategory category = lootSystemCategories.get(selectedGroup);
+            if (category == null) {
+                plugin.getLogger().warning("§c未找到奖励组 " + selectedGroup);
+                return false;
+            }
+
+            // 确定要填充的物品数量
+            int minItems = plugin.getConfig().getInt("global.items-per-chest.min", 3);
+            int maxItems = plugin.getConfig().getInt("global.items-per-chest.max", 8);
+            int totalItems = category.calculateTotalItems();
+            int itemsToFill = Math.min(Math.max(minItems, totalItems / 3), Math.min(maxItems, inventory.getSize()));
+
+            // 随机选择物品
+            List<LootItem> selectedItems = category.selectRandomItems(itemsToFill);
+            if (selectedItems.isEmpty()) {
+                return false;
+            }
+
+            // 将 LootItem 转换为 ItemStack 并填充
+            List<ItemStack> itemStacks = new ArrayList<>();
+            for (LootItem lootItem : selectedItems) {
+                ItemStack itemStack = lootItem.createItemStack();
+                if (itemStack != null) {
+                    itemStacks.add(itemStack);
+                }
+            }
+
+            // 放置物品到箱子
+            placeItemsInInventory(inventory, itemStacks);
+
+            if (plugin.getConfig().getBoolean("debug.enabled", false)) {
+                plugin.getLogger().info("§e[Debug] 使用 loot-system 填充 " + chestType + " 箱子: " +
+                    selectedGroup + " 奖励组，" + itemStacks.size() + " 个物品");
+            }
+
+            return true;
+
+        } catch (Exception e) {
+            plugin.getLogger().warning("§c使用 loot-system.yml 填充失败: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 使用默认的 loot-system 配置填充（当找不到特定配置时）
+     */
+    private boolean tryDefaultLootSystemFill(Inventory inventory) {
+        try {
+            // 如果有基础的奖励组，使用 jichu 作为默认
+            LootCategory defaultCategory = lootSystemCategories.get("jichu");
+            if (defaultCategory != null) {
+                int minItems = plugin.getConfig().getInt("global.items-per-chest.min", 3);
+                int maxItems = plugin.getConfig().getInt("global.items-per-chest.max", 8);
+                int totalItems = defaultCategory.calculateTotalItems();
+                int itemsToFill = Math.min(Math.max(minItems, totalItems / 3), Math.min(maxItems, inventory.getSize()));
+
+                List<LootItem> selectedItems = defaultCategory.selectRandomItems(itemsToFill);
+                if (!selectedItems.isEmpty()) {
+                    List<ItemStack> itemStacks = new ArrayList<>();
+                    for (LootItem lootItem : selectedItems) {
+                        ItemStack itemStack = lootItem.createItemStack();
+                        if (itemStack != null) {
+                            itemStacks.add(itemStack);
+                        }
+                    }
+                    placeItemsInInventory(inventory, itemStacks);
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            plugin.getLogger().warning("§c使用默认 loot-system 配置填充失败: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 根据权重随机选择奖励组
+     */
+    private String selectWeightedRewardGroup(Map<String, Object> rewardGroups) {
+        int totalWeight = rewardGroups.values().stream()
+                .mapToInt(obj -> (obj instanceof Number) ? ((Number) obj).intValue() : 0)
+                .sum();
+
+        if (totalWeight == 0) {
+            return null;
+        }
+
+        int randomWeight = ThreadLocalRandom.current().nextInt(totalWeight);
+        int currentWeight = 0;
+
+        for (Map.Entry<String, Object> entry : rewardGroups.entrySet()) {
+            int weight = (entry.getValue() instanceof Number) ? ((Number) entry.getValue()).intValue() : 0;
+            currentWeight += weight;
+
+            if (randomWeight < currentWeight) {
+                return entry.getKey();
+            }
+        }
+
+        return null;
     }
 
     /**

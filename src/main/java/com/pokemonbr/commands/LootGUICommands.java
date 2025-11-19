@@ -71,12 +71,12 @@ public class LootGUICommands implements CommandExecutor {
 
         if (args.length < 2) {
             sender.sendMessage(ChatColor.RED + "用法: /lootgui open <分类>");
-            sender.sendMessage(ChatColor.GRAY + "可用分类: youpin, jipin, putong");
+            sender.sendMessage(ChatColor.GRAY + "可用分类: 普通, 优品, 极品");
             return true;
         }
 
         Player player = (Player) sender;
-        String category = args[1].toLowerCase();
+        String category = args[1]; // 保持原始大小写，支持中文名称
 
         guiManager.openGUI(player, category);
         return true;
@@ -94,12 +94,12 @@ public class LootGUICommands implements CommandExecutor {
 
         if (args.length < 2) {
             sender.sendMessage(ChatColor.RED + "用法: /lootgui clear <分类>");
-            sender.sendMessage(ChatColor.GRAY + "可用分类: youpin, jipin, putong");
+            sender.sendMessage(ChatColor.GRAY + "可用分类: 普通, 优品, 极品");
             return true;
         }
 
         Player player = (Player) sender;
-        String category = args[1].toLowerCase();
+        String category = args[1]; // 保持原始大小写，支持中文名称
 
         guiManager.clearCategory(player, category);
         return true;
@@ -139,12 +139,12 @@ public class LootGUICommands implements CommandExecutor {
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.GOLD + "========== 物品管理GUI指令 ==========");
         sender.sendMessage(ChatColor.YELLOW + "/lootgui open <分类> " + ChatColor.GRAY + "- 打开物品管理GUI");
-        sender.sendMessage(ChatColor.AQUA + "  示例: /lootgui open youpin");
+        sender.sendMessage(ChatColor.AQUA + "  示例: /lootgui open 优品");
         sender.sendMessage(ChatColor.YELLOW + "/lootgui clear <分类> " + ChatColor.GRAY + "- 清空指定分类物品");
         sender.sendMessage(ChatColor.YELLOW + "/lootgui list " + ChatColor.GRAY + "- 查看所有分类");
         sender.sendMessage(ChatColor.YELLOW + "/lootgui reload " + ChatColor.GRAY + "- 重载配置");
         sender.sendMessage(ChatColor.GOLD + "==================================");
-        sender.sendMessage(ChatColor.GRAY + "可用分类: " + ChatColor.AQUA + "youpin, jipin, putong");
+        sender.sendMessage(ChatColor.GRAY + "可用分类: " + ChatColor.AQUA + "普通, 优品, 极品");
         sender.sendMessage(ChatColor.GRAY + "支持保存完整NBT数据 (包括Pixelmon物品)");
     }
 }

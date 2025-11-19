@@ -170,7 +170,7 @@ public class PlayerCommands implements CommandExecutor {
 
         // 只有已淘汰的玩家才能返回大厅
         if (gamePlayer.isAlive()) {
-            player.sendMessage(ChatColor.RED + "你还在游戏中，无法返回大厅！");
+            player.sendMessage(getMessage("error.cannot-lobby-alive"));
             return true;
         }
 
@@ -187,7 +187,7 @@ public class PlayerCommands implements CommandExecutor {
 
             org.bukkit.Location lobby = new org.bukkit.Location(lobbyWorld, x, y, z, yaw, pitch);
             player.teleport(lobby);
-            player.sendMessage(ChatColor.GREEN + "已返回大厅");
+            player.sendMessage(getMessage("lobby.teleported"));
         }
 
         return true;
@@ -273,7 +273,7 @@ public class PlayerCommands implements CommandExecutor {
         // 检查玩家是否已淘汰（只有淘汰的玩家才能观战）
         GamePlayer gamePlayer = game.getGamePlayer(player.getUniqueId());
         if (gamePlayer == null || gamePlayer.isAlive()) {
-            player.sendMessage(ChatColor.RED + "只有被淘汰的玩家才能使用观战传送功能！");
+            player.sendMessage(getMessage("error.spectate-alive"));
             return true;
         }
 
@@ -288,20 +288,21 @@ public class PlayerCommands implements CommandExecutor {
         // 检查目标玩家是否在同一游戏中
         Game targetGame = plugin.getGameManager().getPlayerGame(target);
         if (targetGame == null || !targetGame.getGameUuid().equals(game.getGameUuid())) {
-            player.sendMessage(ChatColor.RED + "该玩家不在你所在的游戏中！");
+            player.sendMessage(getMessage("error.spectate-different-game"));
             return true;
         }
 
         // 检查目标玩家是否存活
         GamePlayer targetGamePlayer = game.getGamePlayer(target.getUniqueId());
         if (targetGamePlayer == null || !targetGamePlayer.isAlive()) {
-            player.sendMessage(ChatColor.RED + "该玩家已被淘汰，无法观战！");
+            player.sendMessage(getMessage("error.spectate-target-eliminated"));
             return true;
         }
 
         // 传送到目标玩家
         player.teleport(target.getLocation());
-        player.sendMessage(ChatColor.GREEN + "已传送到 " + target.getName() + " 的位置");
+        player.sendMessage(getMessage("spectate.teleported")
+                .replace("{player}", target.getName()));
 
         return true;
     }
