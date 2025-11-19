@@ -1,0 +1,197 @@
+name: ${project.artifactId}
+version: ${project.version}
+main: com.pokemonbr.Main
+api-version: 1.16
+author: l1ang_Y5n
+
+description: 宝可梦大逃杀插件 - 提供竞技性大逃杀玩法
+website: https://github.com/l1ang_Y5n
+
+# ==================== 依赖插件 ====================
+# 所有依赖都改为 softdepend,插件会在运行时检测并给出友好提示
+softdepend: [Vault, LuckPerms, PlaceholderAPI]
+# 注意:
+# - Pixelmon 是 Forge Mod,会在运行时检测
+# - Vault 用于经济系统,必须安装
+# - LuckPerms 用于权限管理,推荐安装
+# - PlaceholderAPI 用于变量系统,可选
+
+# ==================== 玩家指令 ====================
+commands:
+  pbr:
+    description: 宝可梦大逃杀主指令
+    usage: /pbr <join|leave|lobby|spectate|stats|queue|invite>
+    aliases: [battleroyale, br]
+
+  pbrjoin:
+    description: 加入匹配
+    usage: /pbrjoin
+    permission: pbr.player.join
+    permission-message: "&c你没有权限使用此指令"
+
+  pbrleave:
+    description: 退出匹配
+    usage: /pbrleave
+    permission: pbr.player.leave
+    permission-message: "&c你没有权限使用此指令"
+
+  pbrlobby:
+    description: 返回大厅（淘汰后）
+    usage: /pbrlobby
+    permission: pbr.player.lobby
+    permission-message: "&c你没有权限使用此指令"
+
+  pbrspectate:
+    description: 观战模式
+    usage: /pbrspectate <玩家名>
+    permission: pbr.player.spectate
+    permission-message: "&c你没有权限使用此指令"
+
+  pbrstats:
+    description: 查看积分/局数排名
+    usage: /pbrstats [玩家名]
+    permission: pbr.player.stats
+    permission-message: "&c你没有权限使用此指令"
+
+  pbrqueue:
+    description: 单独匹配队列
+    usage: /pbrqueue
+    permission: pbr.player.queue.custom
+    permission-message: "&c你没有权限使用单独队列"
+
+  pbrinvite:
+    description: 邀请玩家到匹配队列
+    usage: /pbrinvite <玩家名>
+    permission: pbr.player.invite
+    permission-message: "&c你没有权限邀请玩家"
+
+  pbradmin:
+    description: 管理员指令
+    usage: /pbradmin <start|stop|reset|setlobby|setspawn|reload>
+    permission: pbr.admin
+    permission-message: "&c你没有管理员权限"
+    aliases: [pbra]
+
+  lootgui:
+    description: 物品管理GUI指令
+    usage: /lootgui <open|clear|list|reload> [分类]
+    permission: pbr.admin.lootgui
+    permission-message: "&c你没有权限使用此指令"
+    aliases: [lgui]
+
+  xxopen:
+    description: 快速打开物品管理GUI
+    usage: /xxopen <优品|极品|普通>
+    permission: pbr.admin.lootgui
+    permission-message: "&c你没有权限使用此指令"
+
+# ==================== 权限节点 ====================
+permissions:
+  # ========== 玩家权限 ==========
+  pbr.player.*:
+    description: 所有玩家权限
+    default: true
+    children:
+      pbr.player.join: true
+      pbr.player.leave: true
+      pbr.player.lobby: true
+      pbr.player.spectate: true
+      pbr.player.stats: true
+
+  pbr.player.join:
+    description: 允许加入匹配
+    default: true
+
+  pbr.player.leave:
+    description: 允许退出匹配
+    default: true
+
+  pbr.player.lobby:
+    description: 允许返回大厅
+    default: true
+
+  pbr.player.spectate:
+    description: 允许观战模式
+    default: true
+
+  pbr.player.stats:
+    description: 允许查看统计
+    default: true
+
+  pbr.player.queue.custom:
+    description: 允许使用单独队列
+    default: false
+
+  pbr.player.invite:
+    description: 允许邀请玩家
+    default: false
+
+  # ========== VIP 权限（游玩次数） ==========
+  pbr.vip.plays.10:
+    description: VIP - 每日10次游玩
+    default: false
+
+  pbr.vip.plays.20:
+    description: VIP - 每日20次游玩
+    default: false
+
+  pbr.vip.plays.30:
+    description: VIP - 每日30次游玩
+    default: false
+
+  # ========== 管理员权限 ==========
+  pbr.admin:
+    description: 所有管理员权限
+    default: op
+    children:
+      pbr.admin.start: true
+      pbr.admin.stop: true
+      pbr.admin.reset: true
+      pbr.admin.setlobby: true
+      pbr.admin.setspawn: true
+      pbr.admin.reload: true
+      pbr.admin.lootgui: true
+      pbr.admin.lootgui.youpin: true
+      pbr.admin.lootgui.jipin: true
+      pbr.admin.lootgui.putong: true
+      pbr.player.spectate: true
+
+  pbr.admin.start:
+    description: 允许强制开局
+    default: op
+
+  pbr.admin.stop:
+    description: 允许强制结束游戏
+    default: op
+
+  pbr.admin.reset:
+    description: 允许重置地图
+    default: op
+
+  pbr.admin.setlobby:
+    description: 允许设置大厅位置
+    default: op
+
+  pbr.admin.setspawn:
+    description: 允许设置出生点
+    default: op
+
+  pbr.admin.reload:
+    description: 允许重载配置
+    default: op
+
+  pbr.admin.lootgui:
+    description: 允许使用物品管理GUI
+    default: op
+
+  pbr.admin.lootgui.youpin:
+    description: 允许管理优品分类
+    default: op
+
+  pbr.admin.lootgui.jipin:
+    description: 允许管理极品分类
+    default: op
+
+  pbr.admin.lootgui.putong:
+    description: 允许管理普通分类
+    default: op

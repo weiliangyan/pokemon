@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ==================== 项目信息 ==================== -->
+    <groupId>com.pokemonbr</groupId>
+    <artifactId>PokemonBattleRoyale</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>PokemonBattleRoyale</name>
+    <description>宝可梦大逃杀插件 - 提供竞技性大逃杀玩法</description>
+    <url>https://github.com/l1ang_Y5n</url>
+
+    <developers>
+        <developer>
+            <name>l1ang_Y5n</name>
+            <email>235236127@qq.com</email>
+        </developer>
+    </developers>
+
+    <!-- ==================== 编译配置 ==================== -->
+    <properties>
+        <java.version>1.8</java.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <!-- ==================== Maven 仓库 ==================== -->
+    <repositories>
+        <!-- PaperMC 仓库 (Spigot API) -->
+        <repository>
+            <id>papermc-repo</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+
+        <!-- Sonatype 快照仓库 (Vault等) -->
+        <repository>
+            <id>sonatype</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+
+        <!-- JitPack 仓库 (VaultAPI) -->
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+
+        <!-- PlaceholderAPI 仓库 -->
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+        </repository>
+
+        <!-- Bintray (TOML4j 仓库) -->
+        <repository>
+            <id>bintray-moandjieziana-toml4j</id>
+            <name>bintray</name>
+            <url>https://dl.bintray.com/moandjieziana/maven</url>
+        </repository>
+    </repositories>
+
+    <!-- ==================== 项目依赖 ==================== -->
+    <dependencies>
+        <!-- Spigot API 1.16.5 (CatServer 兼容) -->
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.16.5-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Pixelmon Reforged 9.1.13 (本地 JAR) -->
+        <dependency>
+            <groupId>com.pixelmonmod</groupId>
+            <artifactId>pixelmon</artifactId>
+            <version>9.1.13</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/Pixelmon-1.16.5-9.1.13-universal.jar</systemPath>
+        </dependency>
+
+        <!-- VaultAPI (经济系统) -->
+        <dependency>
+            <groupId>com.github.MilkBowl</groupId>
+            <artifactId>VaultAPI</artifactId>
+            <version>1.7</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- PlaceholderAPI (变量系统 - 本地 JAR) -->
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>2.11.6</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/PlaceholderAPI-2.11.6.jar</systemPath>
+        </dependency>
+
+        <!-- LuckPerms API (可选权限系统) -->
+        <dependency>
+            <groupId>net.luckperms</groupId>
+            <artifactId>api</artifactId>
+            <version>5.4</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- MySQL 驱动 (需要打包) -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- HikariCP 数据库连接池 (需要打包) -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>4.0.3</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- SLF4J API (HikariCP 依赖) -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.36</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- SLF4J Simple Implementation -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.36</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- TOML解析库 -->
+        <dependency>
+            <groupId>com.electronwill.night-config</groupId>
+            <artifactId>toml</artifactId>
+            <version>3.6.6</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- ==================== 构建配置 ==================== -->
+    <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <!-- 插件核心配置 -->
+                    <include>plugin.yml</include>
+                    <include>config.yml</include>
+                    <include>messages.yml</include>
+                    <include>rewards.yml</include>
+                    <include>spawns.yml</include>
+
+                    <!-- 世界系统配置 -->
+                    <include>world-settings.yml</include>
+
+                    <!-- 战利品系统配置 -->
+                    <include>loot-gui.yml</include>
+                    <include>loot/loot-gui.yml</include>
+                    <include>loot/loot-system.yml</include>
+
+                    <!-- TOML配置文件 -->
+                    <include>tianchonxz.toml</include>
+                    <include>default-tianchonxz.toml</include>
+                    <include>simple-tianchonxz.toml</include>
+
+                    <!-- 世界配置 -->
+                    <include>worlds/**</include>
+
+                    <!-- 包含所有子目录 -->
+                    <include>**/*.yml</include>
+                    <include>**/*.toml</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <plugins>
+            <!-- Maven Compiler 插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- Maven Shade 插件 (打包依赖) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <artifactSet>
+                                <includes>
+                                    <include>mysql:mysql-connector-java</include>
+                                    <include>com.zaxxer:HikariCP</include>
+                                    <include>org.slf4j:slf4j-api</include>
+                                    <include>org.slf4j:slf4j-simple</include>
+                                </includes>
+                            </artifactSet>
+                            <relocations>
+                                <!-- 重定位 MySQL 驱动避免冲突 -->
+                                <relocation>
+                                    <pattern>com.mysql</pattern>
+                                    <shadedPattern>com.pokemonbr.libs.mysql</shadedPattern>
+                                </relocation>
+                                <!-- 重定位 HikariCP 避免冲突 -->
+                                <relocation>
+                                    <pattern>com.zaxxer.hikari</pattern>
+                                    <shadedPattern>com.pokemonbr.libs.hikari</shadedPattern>
+                                </relocation>
+                                <!-- 重定位 SLF4J 避免冲突 -->
+                                <relocation>
+                                    <pattern>org.slf4j</pattern>
+                                    <shadedPattern>com.pokemonbr.libs.slf4j</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

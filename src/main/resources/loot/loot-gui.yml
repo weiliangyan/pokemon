@@ -1,0 +1,271 @@
+# ==========================================
+#   PokemonBattleRoyale - 动态奖励组GUI配置
+#   自动识别奖励组并生成管理界面
+# ==========================================
+
+# ==================== GUI界面设置 ====================
+gui:
+  # GUI标题前缀
+  title-prefix: '&6&l奖励组管理 &8» &e'
+
+  # 主界面标题
+  main-title: '&6&l奖励组系统'
+
+  # GUI大小 (必须是9的倍数)
+  size: 54
+
+  # 打开GUI时是否清空现有内容
+  clear-on-open: false
+
+  # 系统提示消息
+  messages:
+    opened: '&a已打开 &e{category} &a奖励组管理界面'
+    saved: '&a成功保存 &e{count} &a个物品到 &e{category}'
+    cleared: '&c已清空 &e{category} &c的所有物品'
+    no-permission: '&c你没有权限打开此管理界面'
+
+# ==================== 主界面布局 ====================
+main-gui:
+  title: '&6&l奖励组系统'
+
+  # GUI布局 (X=边框, R=奖励组按钮, P=刷新按钮, B=返回按钮, N=新建按钮)
+  layout:
+    pattern:
+      - "XXXXXXXXX"
+      - "XRRRRRRRX"
+      - "XRRRRRRRX"
+      - "X       X"
+      - "X  PBN  X"
+      - "XXXXXXXXX"
+
+  # 物品定义
+  items:
+    # 边框
+    'X':
+      material: "GRAY_STAINED_GLASS_PANE"
+      name: " "
+
+    # 奖励组按钮 (动态生成)
+    'R':
+      material: "CHEST"
+      name: "&e{group-name}"
+      lore:
+        - "&7点击管理 {group-name} 奖励组"
+        - "&7填充概率: &a{fill-chance}%"
+        - "&7格子范围: &e{min-slots}-{max-slots}"
+        - "&7物品数量: &b{item-count}"
+        - "&7状态: {status}"
+      actions:
+        left-click:
+          - "[open-group] {group-name}"
+        right-click:
+          - "[toggle-group] {group-name}"
+
+    # 刷新按钮
+    'P':
+      material: "GLOWSTONE_DUST"
+      name: "&a刷新所有箱子"
+      lore:
+        - "&7立即刷新所有游戏中的箱子"
+        - "&7使用最新的奖励组配置"
+      actions:
+        left-click:
+          - "[refresh-all]"
+          - "[message] &a所有箱子已刷新！"
+
+    # 新建按钮
+    'N':
+      material: "EMERALD"
+      name: "&a新建奖励组"
+      lore:
+        - "&7创建新的奖励组"
+        - "&7支持自定义名称和配置"
+      actions:
+        left-click:
+          - "[create-group]"
+
+    # 返回按钮
+    'B':
+      material: "BARRIER"
+      name: "&c关闭"
+      actions:
+        left-click:
+          - "[close]"
+
+# ==================== 奖励组编辑界面 ====================
+group-gui:
+  title: '&6&l编辑奖励组 &8» &e{group-name}'
+
+  # 奖励组编辑界面布局
+  layout:
+    pattern:
+      - "XNNNNNNNX"
+      - "XNNNNNNNX"
+      - "XNNNNNNNX"
+      - "XNNNNNNNX"
+      - "XNNNNNNNX"
+      - "XCCCSSSBX"
+
+  # 物品定义
+  items:
+    # 边框
+    'X':
+      material: "GRAY_STAINED_GLASS_PANE"
+      name: " "
+
+    # 物品槽位 (用于放置要配置的物品)
+    'N':
+      material: "AIR"
+      name: "&7拖入物品进行配置"
+      lore:
+        - "&7将物品拖入此槽位"
+        - "&7系统会自动保存到奖励组"
+
+    # 配置按钮
+    'C':
+      material: "COMPASS"
+      name: "&b配置选项"
+      lore:
+        - "&7点击修改奖励组设置"
+        - "&7包括概率、格子数等"
+      actions:
+        left-click:
+          - "[open-config] {group-name}"
+
+    # 保存按钮
+    'S':
+      material: "GREEN_WOOL"
+      name: "&a保存配置"
+      lore:
+        - "&7保存当前奖励组的所有物品"
+      actions:
+        left-click:
+          - "[save-group] {group-name}"
+
+    # 清空按钮
+    'S':
+      material: "RED_WOOL"
+      name: "&c清空物品"
+      lore:
+        - "&7清空奖励组中的所有物品"
+      actions:
+        left-click:
+          - "[clear-group] {group-name}"
+
+    # 返回按钮
+    'B':
+      material: "BARRIER"
+      name: "&c返回"
+      actions:
+        left-click:
+          - "[back-to-main]"
+
+# ==================== 动态识别配置 ====================
+# GUI会自动识别loot-system.yml中的奖励组
+
+# 自动识别规则
+auto-detection:
+  # 配置文件路径
+  config-file: "loot-system.yml"
+
+  # 奖励组识别模式
+  pattern: "^[a-zA-Z0-9_]+$"  # 匹配字母数字下划线
+
+  # 排除的键名 (不作为奖励组)
+  exclude-keys:
+    - "global"
+    - "gui"
+    - "main-gui"
+    - "group-gui"
+    - "auto-detection"
+    - "chest-types"
+    - "chest-identification"
+    - "fill-rules"
+
+# ==================== 物品配置面板 ====================
+item-config:
+  # 物品配置界面
+  title: '&6&l物品配置 &8» &e{item-name}'
+
+  # 配置选项
+  options:
+    # 概率设置
+    chance:
+      material: "FEATHER"
+      name: "&e物品概率"
+      description: "该物品在奖励组内的选择概率"
+      type: "number"
+      min: 1
+      max: 100
+      default: 50
+
+    # 数量设置
+    amount:
+      material: "SLIME_BALL"
+      name: "&e物品数量"
+      description: "该物品的堆叠数量"
+      type: "number"
+      min: 1
+      max: 64
+      default: 1
+
+    # 附魔设置
+    enchantments:
+      material: "ENCHANTING_TABLE"
+      name: "&b附魔效果"
+      description: "为物品添加附魔"
+      type: "enchantments"
+
+    # 显示名称
+    display-name:
+      material: "NAME_TAG"
+      name: "&e显示名称"
+      description: "物品的自定义显示名称"
+      type: "string"
+      default: ""
+
+    # 描述信息
+    lore:
+      material: "PAPER"
+      name: "&e描述信息"
+      description: "物品的自定义描述"
+      type: "text"
+      default: []
+
+# ==================== 权限配置 ====================
+permissions:
+  # 基础权限
+  open-gui: "pbr.lootgui.open"
+  edit-groups: "pbr.lootgui.edit"
+  create-groups: "pbr.lootgui.create"
+  delete-groups: "pbr.lootgui.delete"
+  refresh-chests: "pbr.lootgui.refresh"
+
+  # 管理权限 (拥有所有权限)
+  admin: "pbr.lootgui.admin"
+
+# ==================== 消息配置 ====================
+messages:
+  # 成功消息
+  group-created: "&a成功创建奖励组: &e{group-name}"
+  group-deleted: "&c成功删除奖励组: &e{group-name}"
+  group-toggled: "&e奖励组 {group-name} 状态已切换为: {status}"
+  item-saved: "&a物品已保存到奖励组 {group-name}"
+
+  # 错误消息
+  group-exists: "&c奖励组 {group-name} 已存在"
+  group-not-found: "&c奖励组 {group-name} 不存在"
+  no-permission: "&c你没有权限执行此操作"
+  invalid-name: "&c奖励组名称无效，只能包含字母、数字和下划线"
+
+  # 提示消息
+  drag-item-hint: "&7将物品拖入界面进行配置"
+  config-saved: "&a配置已保存"
+  confirm-delete: "&c确认删除奖励组 {group-name}? 再次点击确认"
+
+# ==================== 热键绑定 ====================
+hotkeys:
+  # 快捷键配置
+  save-hotkey: "S"  # 按S键快速保存
+  back-hotkey: "ESC"  # 按ESC键返回
+  delete-hotkey: "DELETE"  # 按DELETE键删除

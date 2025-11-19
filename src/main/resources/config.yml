@@ -1,0 +1,444 @@
+# ===============================================================
+#   PokemonBattleRoyale - 宝可梦大逃杀插件主配置文件
+#
+#   📝 作者: l1ang_Y5n
+#   📧 QQ: 235236127
+#   🐙 GitHub: https://github.com/l1ang_Y5n
+#   📋 版本: 1.0.0
+#
+#   🎮 游戏类型: 宝可梦大逃杀 (Battle Royale)
+#   🔧 依赖: Pixelmon Reforged, Vault, PlaceholderAPI
+#   🌟 特色: 完整的宝可梦对战 + 大逃杀机制
+#
+#   📖 配置说明:
+#   本文件控制插件的核心游戏机制和行为
+#   修改配置后建议重启服务器以确保生效
+#   大部分配置支持热重载 (/pbr reload)
+# ===============================================================
+
+# ==================== 数据存储系统配置 ====================
+storage:
+  # 存储类型选择
+  # ====================
+  # YAML - 本地文件存储 (推荐新手使用)
+  #   ✅ 优点: 无需额外配置，数据备份简单
+  #   ❌ 缺点: 大量玩家时性能较差
+  #
+  # MYSQL - MySQL数据库存储 (推荐大型服务器)
+  #   ✅ 优点: 高性能，支持多服务器同步
+  #   ❌ 缺点: 需要配置数据库服务器
+  # ====================
+  type: YAML
+
+# ==================== MySQL数据库配置 ====================
+# 仅在上方 storage.type 设置为 MYSQL 时生效
+# ⚠️ 请确保MySQL服务器已启动并创建了数据库
+database:
+  # MySQL服务器地址 (可以是IP地址或域名)
+  host: localhost
+
+  # MySQL服务器端口 (默认3306)
+  port: 3306
+
+  # 数据库名称 (需要提前创建)
+  database: minecraft
+
+  # 数据库用户名 (需要具有读写权限)
+  username: root
+
+  # 数据库密码 (请设置安全密码)
+  password: ''
+
+  # SSL连接设置
+  # true: 启用SSL加密连接 (推荐生产环境)
+  # false: 禁用SSL (本地开发可用)
+  useSSL: false
+
+# ==================== 全局游戏机制配置 ====================
+global:
+  # PvP战斗开关
+  # true: 允许玩家之间互相攻击
+  # false: 禁止PVP，玩家只能打宝可梦
+  pvp-enabled: true
+
+  # 骑乘宝可梦功能
+  # true: 允许玩家骑乘自己的宝可梦移动
+  # false: 禁止骑乘宝可梦
+  ride-pokemon-enabled: true
+
+  # 飞行功能开关
+  # true: 允许玩家在游戏中飞行 (可能影响游戏平衡)
+  # false: 禁止飞行，只能地面移动
+  fly-enabled: false
+
+  # 自定义速度控制
+  # true: 启用下面的速度设置
+  # false: 使用Minecraft默认速度
+  speed-control-enabled: false
+
+  # 行走速度 (默认0.2, 范围0.0-1.0)
+  # 建议: 0.2=正常 0.3=快速 0.4=很快
+  walk-speed: 0.2
+
+  # 飞行速度 (默认0.1, 范围0.0-1.0)
+  # 建议: 0.1=正常 0.2=快速 0.3=很快
+  fly-speed: 0.1
+
+  # 无敌模式开关 (主要用于测试)
+  # true: 玩家不会受到任何伤害
+  # false: 正常游戏机制，会受伤和死亡
+  invincible-enabled: false
+
+  # 游戏开始保护时间 (秒)
+  # 新进入游戏的玩家在此时间内无敌
+  # 建议: 30秒足够玩家准备初始装备
+  game-start-invincibility: 30
+
+# ==================== 匹配队列系统配置 ====================
+queue:
+  # 登录大厅世界名称
+  # 玩家未在游戏中时所处的世界
+  lobby-world: world
+
+  # 登录大厅传送坐标
+  # 玩家使用 /pbr lobby 会传送到此位置
+  lobby-location:
+    x: 0.5          # X坐标 (建议.5确保居中)
+    y: 100.0        # Y坐标 (高度)
+    z: 0.5          # Z坐标
+    yaw: 0.0         # 水平朝向 (-180到180)
+    pitch: 0.0       # 垂直朝向 (-90到90)
+
+  # 基础匹配人数设置
+  min-players: 2    # 最少开始游戏人数
+  max-players: 20   # 单场游戏最大人数
+
+  # 匹配倒计时设置
+  # 达到最小人数后的等待时间
+  match-countdown: 30        # 常规匹配倒计时(秒)
+  force-start-min: 2         # 达到此人数后管理员可强制开始
+  ready-countdown: 10        # 准备阶段倒计时(秒)
+
+  # 淘汰后自动重新匹配
+  # true: 玩家被淘汰后自动重新加入队列
+  # false: 需要手动重新排队
+  auto-rejoin-after-elimination: false
+
+  # ==================== 多队列类型系统 ====================
+  # 支持不同权限和游戏模式的队列
+  queues:
+    # 普通队列 (适合大部分玩家)
+    normal:
+      enabled: true                    # 是否启用此队列
+      mode: ranked                     # 游戏模式
+                                      # ranked=计分模式(消耗次数,影响积分)
+                                      # casual=娱乐模式(不消耗次数,不影响积分)
+      permission: ''                  # 权限节点(留空=无需权限)
+      max-players: 20                 # 队列最大人数
+      auto-expand: true               # 满员后自动创建"普通队列2"等
+      display-name: '&a普通队列'       # 显示名称
+
+    # VIP队列 (适合VIP玩家)
+    vip:
+      enabled: true
+      mode: casual                     # 娱乐模式，不消耗次数
+      permission: 'pbr.vip.queue'     # 需要VIP权限
+      max-players: 20
+      auto-expand: true
+      display-name: '&6VIP队列'
+
+    # 管理员队列 (管理员特权)
+    admin:
+      enabled: true
+      mode: casual                     # 娱乐模式
+      permission: 'pbr.admin.queue'   # 需要管理员权限
+      max-players: 20
+      auto-expand: true
+      display-name: '&c管理员队列'
+
+# ==================== 边界缩圈系统配置 ====================
+shrink:
+  # 游戏世界名称 (需要与worlds.yml中的世界名对应)
+  game-world: world_battleroyale
+
+  # 初始安全区大小 (格数)
+  # 游戏开始时的世界边界大小
+  # 建议: 500-1000格适合20人游戏
+  initial-size: 500
+
+  # ==================== 缩圈阶段配置 ====================
+  # 系统会按顺序执行每个阶段的缩圈
+  stages:
+    # 第一阶段: 初期安全区
+    - size: 300        # 缩小到300格
+      duration: 300    # 保持300秒(5分钟)
+      delay: 60        # 开始延迟60秒
+
+    # 第二阶段: 中期安全区
+    - size: 200        # 缩小到200格
+      duration: 240    # 保持240秒(4分钟)
+      delay: 0         # 立即开始
+
+    # 第三阶段: 后期安全区
+    - size: 100        # 缩小到100格
+      duration: 180    # 保持180秒(3分钟)
+      delay: 0         # 立即开始
+
+    # 第四阶段: 终局前安全区
+    - size: 50         # 缩小到50格
+      duration: 120    # 保持120秒(2分钟)
+      delay: 0         # 立即开始
+
+    # 最终阶段: 决战区
+    - size: 10         # 缩小到10格
+      duration: 60     # 保持60秒(1分钟)
+      delay: 0         # 立即开始
+
+  # 缩圈中心坐标
+  # 所有缩圈都会向此坐标收缩
+  center:
+    x: 0.0    # 中心X坐标
+    z: 0.0    # 中心Z坐标
+
+  # 缩圈伤害设置
+  # 玩家在安全区外每秒受到的伤害
+  damage-per-second: 2.0
+
+  # 最后阶段特殊规则
+  # true: 最后缩圈时启用强制PVP等特殊机制
+  # false: 保持正常游戏机制
+  final-stage-special: true
+
+# ==================== 出生点系统配置 ====================
+spawn:
+  # 出生点模式
+  # random: 在指定区域内随机生成
+  # fixed: 使用预设的固定出生点
+  mode: random
+
+  # 随机出生区域配置 (mode=random时生效)
+  random-area:
+    min-x: -200    # 区域最小X坐标
+    max-x: 200     # 区域最大X坐标
+    min-z: -200    # 区域最小Z坐标
+    max-z: 200     # 区域最大Z坐标
+    y: 100         # 出生Y坐标(高度)
+
+  # 固定出生点配置 (mode=fixed时生效)
+  # 空家会按顺序分配到这些出生点
+  fixed-spawns:
+    - x: 200.5      # 第一个出生点
+      y: 100.0
+      z: 200.5
+      yaw: -135.0   # 朝向(看向地图中心)
+
+    - x: -200.5     # 第二个出生点
+      y: 100.0
+      z: -200.5
+      yaw: 45.0     # 朝向(看向地图中心)
+
+  # 玩家初始物品配置
+  # 格式: 物品ID (支持Minecraft和Pixelmon物品)
+  # 详细配置在 loot-system.yml 中的 initial-items 和 chest-identification 部分
+  initial-items:
+    - 'COOKED_BEEF'
+    - 'GOLDEN_APPLE'
+    - 'ENDER_PEARL'
+    - 'IRON_SWORD'
+    - 'BOW'
+    - 'ARROW'
+
+# ==================== 淘汰与胜利机制配置 ====================
+elimination:
+  # 淘汰后返回大厅倒计时 (秒)
+  # 给玩家时间查看战利品和统计信息
+  return-countdown: 10
+
+  # ==================== 开局状态淘汰规则 ====================
+  # 游戏初期的宽松淘汰规则 (避免新手秒退)
+  early-game:
+    battle-loss: false         # 宝可梦对战失败不淘汰
+    flee: false                # 逃跑不淘汰
+    disconnect: false          # 掉线不淘汰(重连可继续)
+    force-end: false           # 强制结束战斗不淘汰
+    decline-battle: false      # 拒绝对战不淘汰
+    no-pokemon: true           # 没有宝可梦时淘汰(背包空了)
+
+  # ==================== 最后阶段淘汰规则 ====================
+  # 游戏后期的严格淘汰规则 (增加紧张感)
+  final-stage:
+    battle-loss: true          # 对战失败直接淘汰
+    flee: true                 # 逃跑算作失败
+    disconnect: true           # 掉线直接淘汰
+    force-end: true            # 强制结束战斗算失败
+    decline-battle: true       # 拒绝对战算失败
+    no-pokemon: true           # 没有宝可梦淘汰
+    auto-heal-winner: true     # 战胜方自动恢复血量
+
+  # ==================== 淘汰后行为配置 ====================
+  after-elimination:
+    # 淘汰后处理模式
+    # spectator: 进入观战模式，观看剩余玩家
+    # lobby: 直接返回匹配大厅
+    mode: spectator
+
+    # 观战倒计时 (秒)
+    # 在观战模式停留的时间
+    countdown: 5
+
+    # 是否自动重新加入队列
+    # true: 淘汰后自动重新排队
+    # false: 需要手动重新排队
+    auto-rejoin-queue: false
+
+# ==================== 胜利庆祝特效配置 ====================
+victory:
+  # 庆祝特效持续时间 (秒)
+  celebration-duration: 10
+
+  # 烟花特效
+  fireworks:
+    enabled: true      # 是否启用烟花
+    count: 5          # 每个胜利者生成的烟花数量
+    interval: 20      # 烟花生成间隔(tick, 20tick=1秒)
+
+  # 音效特效
+  music:
+    enabled: true                     # 是否启用音效
+    sound: 'ENTITY_PLAYER_LEVELUP'   # 胜利音效(1.16.5)
+    volume: 1.0                      # 音量(0.0-1.0)
+    pitch: 1.0                       # 音调(0.5-2.0)
+
+  # 全屏文字特效
+  title:
+    enabled: true        # 是否启用Title
+    fade-in: 10         # 淡入时间(tick)
+    stay: 60            # 持续时间(tick)
+    fade-out: 10        # 淡出时间(tick)
+
+# ==================== 游玩次数限制系统 ====================
+# 用于控制玩家每日游戏次数，防止沉迷
+play-limit:
+  # 是否启用游玩次数限制
+  enabled: true
+
+  # 普通玩家每日基础次数
+  default-plays: 3
+
+  # ==================== 免费游玩配置 ====================
+  free-plays:
+    enabled: true                     # 是否启用免费次数
+    daily-plays: 1                    # 每日免费次数
+    permission: 'pbr.freeplays'       # 享受免费次数的权限
+
+  # ==================== VIP等级次数配置 ====================
+  # 不同VIP等级拥有不同的每日游戏次数
+  vip-levels:
+    # VIP等级1: 每日10次
+    - permission: 'pbr.vip.plays.10'
+      plays: 10
+
+    # VIP等级2: 每日20次
+    - permission: 'pbr.vip.plays.20'
+      plays: 20
+
+    # VIP等级3: 每日30次
+    - permission: 'pbr.vip.plays.30'
+      plays: 30
+
+  # 次数重置设置
+  reset-hours: 24          # 重置间隔(小时)
+  reset-time: 4            # 每日重置时间点(24小时制, 0-23)
+
+# ==================== 世界恢复系统配置 ====================
+# 游戏结束后自动恢复世界到初始状态
+world-restore:
+  enabled: true                    # 是否启用世界恢复
+
+  # 世界模板路径 (相对于服务器根目录)
+  # 游戏会基于此模板创建临时游戏世界
+  template-path: 'world_battleroyale_template'
+
+  # 立即恢复设置
+  # true: 游戏结束后立即开始恢复过程
+  # false: 等待下一个游戏开始时恢复
+  restore-immediately: true
+
+  # 箱子物品刷新
+  # true: 新游戏开始时重新填充所有箱子
+  # false: 保持上次的游戏内容
+  refresh-chests: true
+
+# ==================== 世界复制系统配置 ====================
+# 控制世界模板复制行为
+world-copy:
+  # 复制模式
+  # async: 异步复制（推荐，不阻塞主线程）
+  # sync: 同步复制（可能造成服务器卡顿）
+  mode: 'async'
+
+# ==================== 世界管理配置 ====================
+# 控制世界清理和删除行为
+world-management:
+  # 世界删除延迟（秒）
+  # 游戏结束后等待多久再删除世界文件
+  delete-delay: 10
+
+# ===============================================================
+#                   调试与性能优化配置
+# ===============================================================
+
+# ==================== 调试模式配置 ====================
+debug:
+  # 调试模式开关
+  # true: 输出详细的调试信息到控制台
+  # false: 正常运行模式，只输出重要信息
+  enabled: false
+
+  # 详细日志模式
+  # true: 输出所有操作日志(可能影响性能)
+  # false: 只输出关键日志
+  verbose: false
+
+# ==================== 性能优化配置 ====================
+performance:
+  # 异步数据保存
+  # true: 在后台线程保存数据，不阻塞主线程
+  # false: 在主线程同步保存(可能造成卡顿)
+  async-save: true
+
+  # 数据缓存时间 (秒)
+  # 玩家数据在内存中的缓存时间
+  # 建议: 300秒(5分钟)平衡性能和数据实时性
+  cache-duration: 300
+
+# ===============================================================
+#                    🚨 重要配置提示 🚨
+# ===============================================================
+#
+# 1. 修改配置后:
+#    - 大部分配置需要重启服务器生效
+#    - 部分配置可用 /pbr reload 热重载
+#    - 建议先在测试环境验证配置
+#
+# 2. 数据库配置:
+#    - 使用MySQL前请确保数据库服务正常运行
+#    - 确保用户具有足够的权限
+#    - 建议定期备份数据库
+#
+# 3. 性能考虑:
+#    - max-players 不建议超过50人
+#    - 队列数量不宜过多(建议不超过10个)
+#    - 缩圈阶段建议控制在5-8个以内
+#
+# 4. 平衡性调整:
+#    - initial-items 影响游戏初期难度
+#    - damage-per-second 影响后期节奏
+#    - game-start-invincibility 影响新手体验
+#
+# 5. 权限系统:
+#    - 建议为不同玩家群体设置合适的权限
+#    - VIP权限可增加服务器收入
+#    - 管理员权限谨慎分配
+#
+# ===============================================================

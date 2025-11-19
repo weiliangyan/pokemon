@@ -1,0 +1,171 @@
+# ==================================================
+#   天充箱子 (tianchonxz) 模组配置文件
+#   用于配置游戏世界中箱子的物品填充系统
+#   作者: l1ang_Y5n (QQ: 235236127)
+# ==================================================
+
+# ==================== 食物类别 ====================
+[[tianchonxz.categories]]
+# 类别名称 (只能包含字母和数字)
+name = "food"
+# 填充格数范围
+minslots = 2
+maxslots = 6
+# 物品堆叠数量范围
+minstack = 2
+maxstack = 6
+# 物品列表 (格式: "modid:item_id")
+items = [
+    "minecraft:bread",
+    "minecraft:cooked_beef",
+    "minecraft:golden_apple",
+    "pixelmon:potion",
+    "pixelmon:super_potion"
+]
+
+# ==================== 精灵球类别 ====================
+[[tianchonxz.categories]]
+name = "pokeball"
+minslots = 1
+maxslots = 3
+minstack = 1
+maxstack = 5
+items = [
+    "pixelmon:poke_ball",
+    "pixelmon:great_ball",
+    "pixelmon:ultra_ball"
+]
+
+# ==================== 稀有物品类别 ====================
+[[tianchonxz.categories]]
+name = "xiyou"
+minslots = 1
+maxslots = 2
+minstack = 1
+maxstack = 3
+items = [
+    "pixelmon:rare_candy",
+    "pixelmon:max_potion",
+    "pixelmon:full_restore",
+    "pixelmon:master_ball"
+]
+
+# ==================== 武器类别 ====================
+[[tianchonxz.categories]]
+name = "weapons"
+minslots = 1
+maxslots = 2
+minstack = 1
+maxstack = 1
+items = [
+    "minecraft:iron_sword",
+    "minecraft:diamond_sword",
+    "minecraft:bow",
+    "minecraft:crossbow",
+    "minecraft:trident"
+]
+
+# ==================== 护甲类别 ====================
+[[tianchonxz.categories]]
+name = "armor"
+minslots = 1
+maxslots = 4
+minstack = 1
+maxstack = 1
+items = [
+    "minecraft:iron_helmet",
+    "minecraft:iron_chestplate",
+    "minecraft:iron_leggings",
+    "minecraft:iron_boots",
+    "minecraft:diamond_helmet",
+    "minecraft:diamond_chestplate"
+]
+
+# ==================== 药水类别 ====================
+[[tianchonxz.categories]]
+name = "potions"
+minslots = 1
+maxslots = 3
+minstack = 1
+maxstack = 2
+items = [
+    "minecraft:potion",
+    "minecraft:splash_potion",
+    "pixelmon:hyper_potion",
+    "pixelmon:revive",
+    "pixelmon:max_revive"
+]
+
+# ==================== 工具类别 ====================
+[[tianchonxz.categories]]
+name = "tools"
+minslots = 1
+maxslots = 2
+minstack = 1
+maxstack = 1
+items = [
+    "minecraft:iron_pickaxe",
+    "minecraft:iron_axe",
+    "minecraft:diamond_pickaxe",
+    "minecraft:shears"
+]
+
+# ==================== 弹药类别 ====================
+[[tianchonxz.categories]]
+name = "ammunition"
+minslots = 1
+maxslots = 3
+minstack = 16
+maxstack = 64
+items = [
+    "minecraft:arrow",
+    "minecraft:spectral_arrow",
+    "minecraft:tipped_arrow"
+]
+
+# ==================== 建筑材料类别 ====================
+[[tianchonxz.categories]]
+name = "blocks"
+minslots = 1
+maxslots = 2
+minstack = 16
+maxstack = 64
+items = [
+    "minecraft:oak_planks",
+    "minecraft:cobblestone",
+    "minecraft:obsidian",
+    "minecraft:tnt"
+]
+
+# ==================== 特殊物品类别 ====================
+[[tianchonxz.categories]]
+name = "special"
+minslots = 1
+maxslots = 2
+minstack = 1
+maxstack = 4
+items = [
+    "minecraft:ender_pearl",
+    "minecraft:experience_bottle",
+    "minecraft:totem_of_undying",
+    "minecraft:elytra",
+    "pixelmon:exp_share",
+    "pixelmon:lucky_egg"
+]
+
+# ==================================================
+#                   配置说明
+# ==================================================
+# 1. name: 类别唯一标识符 (只能包含字母和数字,不支持汉字)
+# 2. minslots/maxslots: 此类别物品在箱子中占用的格子数量范围
+# 3. minstack/maxstack: 每格物品的堆叠数量范围
+# 4. items: 该类别包含的所有物品列表
+#    - Minecraft 原版物品格式: "minecraft:item_id"
+#    - Pixelmon 模组物品格式: "pixelmon:item_id"
+#
+# 提示:
+# - 可以复制整个 [[tianchonxz.categories]] 代码块来添加新类别
+# - 建议根据物品稀有度调整 minslots/maxslots 的值
+# - 常见物品: minslots=2-3, maxslots=5-6
+# - 稀有物品: minslots=1, maxslots=2
+# ==================================================

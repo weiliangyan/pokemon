@@ -1,0 +1,233 @@
+# ==========================================
+#   PokemonBattleRoyale - 奖励组战利品系统
+#   基于概率分组的物品填充系统
+# ==========================================
+
+# ==================== 全局设置 ====================
+global:
+  # 是否启用奖励组系统
+  enabled: true
+
+  # 每个箱子填充的物品数量范围
+  items-per-chest:
+    min: 3
+    max: 8
+
+  # 是否清空箱子后再填充
+  clear-before-fill: true
+
+  # 是否在游戏开始时填充
+  fill-on-start: true
+
+# ==================== 奖励组配置 ====================
+# 奖励组说明：
+# - fill-chance: 奖励组被选中填充的概率 (0.0-1.0)
+# - min-slots/max-slots: 该奖励组在箱子中占用的格子数范围
+# - min-stack/max-stack: 每个物品的堆叠数量范围
+# - items: 该奖励组包含的物品列表
+
+# 基础奖励组 (jichu) - 高概率，基础物品
+jichu:
+  # 填充概率 (70%)
+  fill-chance: 0.7
+
+  # 格子数量范围
+  min-slots: 2
+  max-slots: 6
+
+  # 堆叠数量范围
+  min-stack: 1
+  max-stack: 8
+
+  # 是否启用
+  enabled: true
+
+  # 物品列表
+  items:
+    - material: COOKED_BEEF
+
+    - material: BREAD
+
+    - material: IRON_SWORD
+
+    - material: IRON_PICKAXE
+
+# 优品奖励组 (youpin) - 中等概率，中等物品
+youpin:
+  # 填充概率 (50%)
+  fill-chance: 0.5
+
+  # 格子数量范围
+  min-slots: 1
+  max-slots: 4
+
+  # 堆叠数量范围
+  min-stack: 1
+  max-stack: 4
+
+  # 是否启用
+  enabled: true
+
+  # 物品列表
+  items:
+    - material: GOLDEN_APPLE
+
+    - material: DIAMOND_SWORD
+
+    - material: DIAMOND_CHESTPLATE
+
+    - material: ENDER_PEARL
+
+    - material: EXPERIENCE_BOTTLE
+
+# 极品奖励组 (jipin) - 低概率，顶级物品
+jipin:
+  # 填充概率 (20%)
+  fill-chance: 0.2
+
+  # 格子数量范围
+  min-slots: 1
+  max-slots: 2
+
+  # 堆叠数量范围
+  min-stack: 1
+  max-stack: 1
+
+  # 是否启用
+  enabled: true
+
+  # 物品列表
+  items:
+    - material: ENCHANTED_GOLDEN_APPLE
+
+    - material: TOTEM_OF_UNDYING
+
+    - material: ELYTRA
+
+    - material: TRIDENT
+
+# 宝可梦奖励组 (pokemon) - 特殊概率，宝可梦物品
+pokemon:
+  # 填充概率 (30%)
+  fill-chance: 0.3
+
+  # 格子数量范围
+  min-slots: 1
+  max-slots: 3
+
+  # 堆叠数量范围
+  min-stack: 1
+  max-stack: 5
+
+  # 是否启用
+  enabled: true
+
+  # 物品列表 (需要Pixelmon插件)
+  items:
+    - material: PIXELMON:POKE_BALL
+
+    - material: PIXELMON:GREAT_BALL
+
+    - material: PIXELMON:ULTRA_BALL
+
+    - material: PIXELMON:MASTER_BALL
+
+    - material: PIXELMON:REVIVE
+
+# 空投奖励组 (airdrop) - 特殊箱子专用
+airdrop:
+  # 填充概率 (100% - 空投必中)
+  fill-chance: 1.0
+
+  # 格子数量范围
+  min-slots: 5
+  max-slots: 10
+
+  # 堆叠数量范围
+  min-stack: 1
+  max-stack: 3
+
+  # 是否启用
+  enabled: true
+
+  # 物品列表 (空投专用高级物品)
+  items:
+    - material: DIAMOND
+
+    - material: ENCHANTED_GOLDEN_APPLE
+
+    - material: TOTEM_OF_UNDYING
+
+    - material: ELYTRA
+
+    - material: NETHERITE_INGOT
+
+# ==================== 箱子类型配置 ====================
+# 不同类型的箱子可以使用不同的奖励组组合
+
+chest-types:
+  # 普通箱子
+  normal:
+    # 使用的奖励组 (key为奖励组名称，value为权重)
+    reward-groups:
+      jichu: 70
+      youpin: 25
+      jipin: 5
+      pokemon: 15
+    # 空投不会在普通箱子中
+    airdrop: 0
+
+  # 优品箱子
+  premium:
+    reward-groups:
+      jichu: 30
+      youpin: 50
+      jipin: 20
+      pokemon: 30
+    airdrop: 0
+
+  # 极品箱子
+  legendary:
+    reward-groups:
+      jichu: 10
+      youpin: 40
+      jipin: 40
+      pokemon: 35
+    airdrop: 10
+
+  # 空投箱子
+  airdrop:
+    reward-groups:
+      jichu: 0
+      youpin: 30
+      jipin: 50
+      pokemon: 40
+    airdrop: 100
+
+# ==================== 箱子识别配置 ====================
+# 通过告示牌识别箱子类型
+chest-identification:
+  # 告示牌第一行文本 -> 箱子类型
+  sign-lines:
+    '[普通]': 'normal'
+    '[优品]': 'premium'
+    '[极品]': 'legendary'
+    '[空投]': 'airdrop'
+    '[AIRDROP]': 'airdrop'
+
+# ==================== 填充规则配置 ====================
+fill-rules:
+  # 是否允许重复物品 (同一个物品在箱子中出现多次)
+  allow-duplicates: true
+
+  # 最大同类物品数量 (防止单一物品过多)
+  max-same-items: 3
+
+  # 是否强制填充最小数量 (如果选不出足够的物品，会用基础物品填充)
+  force-min-items: true
+
+  # 基础物品 (用于填充不足的情况)
+  fallback-items:
+    - material: BREAD
+
+    - material: COOKED_BEEF

@@ -1,0 +1,145 @@
+# ==========================================
+#   PokemonBattleRoyale - 飞行堡垒世界
+#   高空对战地图，适合飞行宝可梦战斗
+# ==========================================
+
+# ==================== 世界基本信息 ====================
+world:
+  # 是否启用此世界作为模板（true=参与地图池，false=禁用）
+  enabled: true
+
+  # 模板地图名称（服务器根目录下的世界文件夹名）
+  template-world: 'world_flyfortress_template'
+
+  # 世界别名（显示名称）
+  display-name: '&b&l飞行堡垒'
+
+  # 世界描述
+  description: '高空对战地图，适合飞行宝可梦战斗'
+
+  # 权重（地图池随机选择时的权重，越大越容易被选中）
+  weight: 100
+
+  # 世界难度
+  difficulty: 'hard'
+
+  # 环境类型
+  environment: 'normal'
+
+# ==================== 缩圈中心配置 ====================
+shrink-center:
+  # 模式: fixed=固定坐标, random=随机坐标
+  mode: 'random'
+
+  # 随机坐标模式（仅当mode=random时生效）
+  # 随机范围（高空区域）
+  min-x: -150
+  max-x: 150
+  min-z: -150
+  max-z: 150
+
+# ==================== 出生点配置 ====================
+spawn:
+  # 出生点模式: random=随机, fixed-diagonal=固定对角
+  mode: 'fixed-diagonal'
+
+  # 固定出生点坐标（高空堡垒出生点）
+  location:
+    x: 250.0
+    y: 120.0
+    z: 250.0
+    yaw: 45.0
+    pitch: 10.0
+
+  # 备用随机范围（如果mode='random'）
+  random-range:
+    min-x: -250
+    max-x: 250
+    min-z: -250
+    max-z: 250
+    y: 120
+
+# ==================== 特殊规则配置 ====================
+special-rules:
+  # 是否允许破坏方块
+  allow-block-breaking: false  # 保护堡垒结构
+
+  # 是否允许放置方块
+  allow-block-placing: false   # 保护堡垒结构
+
+  # 游戏时长限制（分钟，0表示无限制）
+  time-limit: 45  # 飞行堡垒限时45分钟
+
+# ==================== 初始物品配置 ====================
+initial-items:
+  # 飞行堡垒专用物品列表
+  items:
+    - 'COOKED_BEEF'
+    - 'GOLDEN_APPLE'
+    - 'ENDER_PEARL'
+    - 'FIREWORK_ROCKET'
+    - 'ELYTRA'
+    - 'FIREWORK_ROCKET'
+    - 'IRON_SWORD'
+    - 'BOW'
+    - 'ARROW'
+
+# ==================== 缩圈阶段配置 ====================
+shrink-stages:
+  # 初始世界边界大小（格数）
+  initial-size: 600
+
+  # 飞行堡垒专用缩圈阶段
+  stages:
+    - size: 500
+      duration: 360
+      delay: 90
+      message: '&b飞行堡垒区域开始缩小！'
+    - size: 400
+      duration: 300
+      delay: 0
+      message: '&3安全区收缩中，注意飞行路径！'
+    - size: 300
+      duration: 240
+      delay: 0
+      message: '&3空战进入白热化阶段！'
+    - size: 200
+      duration: 180
+      delay: 0
+      message: '&9最后的天空堡垒争夺战！'
+    - size: 100
+      duration: 120
+      delay: 0
+      message: '&9最终决战圈！'
+    - size: 50
+      duration: 60
+      delay: 0
+      message: '&5天空之王诞生时刻！'
+
+# ==================== 箱子配置 ====================
+chests:
+  # 是否自动生成箱子
+  auto-generate: true
+
+  # 箱子生成密度（每个区块的箱子数量）
+  density: 3  # 高空地图箱子密度稍高
+
+  # 是否使用此世界的自定义箱子类型权重
+  use-custom-weights: true
+
+  # 箱子类型权重 (仅在 use-custom-weights=true 时生效，更适合空战的配置)
+  type-weights:
+    jichu: 50  # 基础奖励组 50%
+    youpin: 35  # 优品奖励组 35%
+    jipin: 15   # 极品奖励组 15%
+
+# ==================== 特殊规则配置 ====================
+special-rules:
+  # 是否允许破坏方块
+  allow-block-breaking: false  # 保护堡垒结构
+
+  # 是否允许放置方块
+  allow-block-placing: false   # 保护堡垒结构
+
+  # 游戏时长限制（分钟，0表示无限制）
+  time-limit: 45  # 飞行堡垒限时45分钟

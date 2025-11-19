@@ -1,0 +1,294 @@
+# =================================================
+#   天充箱子 (tianchonxz) 模组配置文件
+#   作者: l1ang_Y5n (QQ: 235236127)
+#   PokemonBattleRoyale 插件专用
+#
+#   特性：
+#   - 支持概率填充功能
+#   - 支持自定义品类
+#   - 支持GUI自动识别新增品类
+#   - 支持物品堆叠数量控制
+#   - 支持填充格数控制
+# =================================================
+
+[tianchonxz]
+# 天充箱子配置节点
+
+# 基础品类 - 高概率填充，大量物品
+[[tianchonxz.categories]]
+name = "jichu"
+minslots = 3        # 最小填充格数
+maxslots = 8        # 最大填充格数
+minstack = 1        # 最小堆叠数量
+maxstack = 4        # 最大堆叠数量
+fill_chance = 0.85  # 填充概率 (85%)
+enabled = true      # 是否启用
+items = [
+    "minecraft:diamond",
+    "minecraft:gold_ingot",
+    "minecraft:iron_ingot",
+    "minecraft:bread",
+    "minecraft:apple",
+    "minecraft:cooked_beef",
+    "minecraft:coal",
+    "minecraft:torch"
+]
+
+# 优良品类 - 中等概率，中等数量
+[[tianchonxz.categories]]
+name = "youpin"
+minslots = 2
+maxslots = 5
+minstack = 1
+maxstack = 2
+fill_chance = 0.65  # 填充概率 (65%)
+enabled = true
+items = [
+    "minecraft:emerald",
+    "minecraft:diamond_sword",
+    "minecraft:diamond_pickaxe",
+    "minecraft:iron_armor",
+    "minecraft:bow",
+    "minecraft:arrow",
+    "minecraft:golden_apple"
+]
+
+# 稀有品类 - 低概率，少量物品
+[[tianchonxz.categories]]
+name = "xiyou"
+minslots = 1
+maxslots = 3
+minstack = 1
+maxstack = 1
+fill_chance = 0.35  # 填充概率 (35%)
+enabled = true
+items = [
+    "minecraft:nether_star",
+    "minecraft:elytra",
+    "minecraft:enchanted_golden_apple",
+    "minecraft:diamond_block",
+    "minecraft:emerald_block"
+]
+
+# 传奇品类 - 超低概率，极品物品
+[[tianchonxz.categories]]
+name = "chuanqi"
+minslots = 1
+maxslots = 2
+minstack = 1
+maxstack = 1
+fill_chance = 0.10  # 填充概率 (10%)
+enabled = true
+items = [
+    "minecraft:totem_of_undying",
+    "minecraft: Trident",
+    "minecraft:shulker_box",
+    "minecraft:dragon_egg"
+]
+
+# 食物品类 - 高概率，专门食物
+[[tianchonxz.categories]]
+name = "food"
+minslots = 4
+maxslots = 10
+minstack = 2
+maxstack = 8
+fill_chance = 0.90  # 填充概率 (90%)
+enabled = true
+items = [
+    "minecraft:bread",
+    "minecraft:apple",
+    "minecraft:carrot",
+    "minecraft:potato",
+    "minecraft:cooked_beef",
+    "minecraft:cooked_chicken",
+    "minecraft:cooked_porkchop",
+    "minecraft:cooked_rabbit",
+    "minecraft:pumpkin_pie",
+    "minecraft:cake"
+]
+
+# 药水品类 - 中概率，各种药水
+[[tianchonxz.categories]]
+name = "potions"
+minslots = 2
+maxslots = 4
+minstack = 1
+maxstack = 3
+fill_chance = 0.50  # 填充概率 (50%)
+enabled = true
+items = [
+    "minecraft:potion",
+    "minecraft:splash_potion",
+    "minecraft:lingering_potion"
+]
+
+# 工具品类 - 高概率，基础工具
+[[tianchonxz.categories]]
+name = "tools"
+minslots = 3
+maxslots = 6
+minstack = 1
+maxstack = 1
+fill_chance = 0.75  # 填充概率 (75%)
+enabled = true
+items = [
+    "minecraft:wooden_pickaxe",
+    "minecraft:stone_pickaxe",
+    "minecraft:iron_pickaxe",
+    "minecraft:wooden_axe",
+    "minecraft:stone_axe",
+    "minecraft:iron_axe",
+    "minecraft:wooden_sword",
+    "minecraft:stone_sword",
+    "minecraft:iron_sword"
+]
+
+# 附魔书品类 - 低概率，珍贵附魔
+[[tianchonxz.categories]]
+name = "enchanted_books"
+minslots = 1
+maxslots = 2
+minstack = 1
+maxstack = 1
+fill_chance = 0.25  # 填充概率 (25%)
+enabled = true
+items = [
+    "minecraft:enchanted_book"
+]
+
+# 建筑材料品类 - 高概率，大量建筑方块
+[[tianchonxz.categories]]
+name = "building"
+minslots = 5
+maxslots = 12
+minstack = 4
+maxstack = 16
+fill_chance = 0.80  # 填充概率 (80%)
+enabled = true
+items = [
+    "minecraft:oak_planks",
+    "minecraft:cobblestone",
+    "minecraft:glass",
+    "minecraft:bricks",
+    "minecraft:stone_bricks",
+    "minecraft:wood",
+    "minecraft:iron_bars",
+    "minecraft:glowstone"
+]
+
+# 农作物品类 - 中概率，种子和农作物
+[[tianchonxz.categories]]
+name = "farming"
+minslots = 3
+maxslots = 8
+minstack = 2
+maxstack = 6
+fill_chance = 0.60  # 填充概率 (60%)
+enabled = true
+items = [
+    "minecraft:wheat_seeds",
+    "minecraft:melon_seeds",
+    "minecraft:pumpkin_seeds",
+    "minecraft:beetroot_seeds",
+    "minecraft:wheat",
+    "minecraft:carrot",
+    "minecraft:potato",
+    "minecraft:beetroot"
+]
+
+# 红石品类 - 中等概率，红石相关
+[[tianchonxz.categories]]
+name = "redstone"
+minslots = 2
+maxslots = 5
+minstack = 1
+maxstack = 3
+fill_chance = 0.55  # 填充概率 (55%)
+enabled = true
+items = [
+    "minecraft:redstone",
+    "minecraft:redstone_torch",
+    "minecraft:lever",
+    "minecraft:stone_button",
+    "minecraft:wooden_button",
+    "minecraft:repeater",
+    "minecraft:comparator",
+    "minecraft:piston",
+    "minecraft:sticky_piston"
+]
+
+# 矿石品类 - 低概率，珍贵矿石
+[[tianchonxz.categories]]
+name = "ores"
+minslots = 2
+maxslots = 4
+minstack = 1
+maxstack = 2
+fill_chance = 0.40  # 填充概率 (40%)
+enabled = true
+items = [
+    "minecraft:diamond_ore",
+    "minecraft:emerald_ore",
+    "minecraft:gold_ore",
+    "minecraft:iron_ore",
+    "minecraft:coal_ore",
+    "minecraft:lapis_ore",
+    "minecraft:redstone_ore"
+]
+
+# 杂项品类 - 高概率，各种有用小物品
+[[tianchonxz.categories]]
+name = "misc"
+minslots = 4
+maxslots = 9
+minstack = 1
+maxstack = 8
+fill_chance = 0.70  # 填充概率 (70%)
+enabled = true
+items = [
+    "minecraft:string",
+    "minecraft:feather",
+    "minecraft:flint",
+    "minecraft:leather",
+    "minecraft:paper",
+    "minecraft:book",
+    "minecraft:compass",
+    "minecraft:clock",
+    "minecraft:map",
+    "minecraft:saddle",
+    "minecraft:lead",
+    "minecraft:name_tag"
+]
+
+# =================================================
+#   配置说明：
+#
+# 1. 每个品类都有独立的配置，包括：
+#    - minslots/maxslots: 填充格数范围
+#    - minstack/maxstack: 每格物品堆叠数量范围
+#    - fill_chance: 品类填充概率 (0.0-1.0)
+#    - enabled: 是否启用此品类
+#    - items: 物品列表 (支持 Minecraft 物品ID)
+#
+# 2. 概率填充机制：
+#    - 每次刷新时，每个品类有 fill_chance 的概率被选择填充
+#    - 如果被选中，会在 minslots-maxslots 之间随机选择填充数量
+#    - 每格物品的堆叠数量在 minstack-maxstack 之间随机
+#
+# 3. GUI自动识别：
+#    - 插件启动时会自动读取此配置文件
+#    - GUI界面会自动显示所有启用的品类
+#    - 管理员可以通过GUI管理每个品类的物品
+#    - 新增的品类会被GUI自动识别
+#
+# 4. 使用方法：
+#    - 使用 /lootgui open <品类名> 打开对应品类的管理界面
+#    - 将物品放入GUI界面后关闭即可保存
+#    - 保存后的物品会出现在此配置文件的对应品类中
+#
+# 5. 自定义品类：
+#    - 按照现有格式添加新的品类即可
+#    - 品类名称只能使用英文字母、数字和下划线
+#    - GUI会自动识别新添加的品类
+# =================================================

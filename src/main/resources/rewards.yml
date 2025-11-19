@@ -1,0 +1,191 @@
+# ==========================================
+#   PokemonBattleRoyale - 奖励配置文件
+#   配置胜利奖励和积分规则
+# ==========================================
+
+# ==================== 前三名奖励配置 ====================
+top-rewards:
+  # 第一名奖励
+  rank-1:
+    # 名次积分
+    rank-points: 100
+    # 每次淘汰玩家的积分
+    kill-points: 10
+    # Vault货币奖励
+    money: 1000
+    # 执行指令（%player% = 玩家名）
+    commands:
+      - 'give %player% minecraft:diamond 5'
+      - 'give %player% minecraft:golden_apple 3'
+    # 广播消息
+    broadcast: '&6&l恭喜 {player} 获得第一名！'
+
+  # 第二名奖励
+  rank-2:
+    rank-points: 75
+    kill-points: 8
+    money: 500
+    commands:
+      - 'give %player% minecraft:diamond 3'
+      - 'give %player% minecraft:golden_apple 2'
+    broadcast: '&7&l恭喜 {player} 获得第二名！'
+
+  # 第三名奖励
+  rank-3:
+    rank-points: 50
+    kill-points: 6
+    money: 300
+    commands:
+      - 'give %player% minecraft:diamond 1'
+      - 'give %player% minecraft:golden_apple 1'
+    broadcast: '&c&l恭喜 {player} 获得第三名！'
+
+# ==================== 其他名次奖励配置 ====================
+other-ranks:
+  # 排名区间奖励
+  ranges:
+    # 第4-10名
+    '4-10':
+      rank-points: 30
+      kill-points: 5
+      money: 100
+      commands: []
+
+    # 第11-20名
+    '11-20':
+      rank-points: 20
+      kill-points: 4
+      money: 50
+      commands: []
+
+    # 第21名及以后
+    '21+':
+      rank-points: 10
+      kill-points: 3
+      money: 20
+      commands: []
+
+# ==================== 参与奖励 ====================
+participation:
+  # 是否启用参与奖励
+  enabled: true
+  # 最低游戏时长要求（秒）
+  min-duration: 60
+  # 参与积分
+  points: 5
+  # 参与货币
+  money: 10
+  # 参与指令
+  commands: []
+
+# ==================== 击败奖励 ====================
+kill-rewards:
+  # 是否启用击败奖励
+  enabled: true
+  # 每击败一个玩家的即时奖励
+  per-kill:
+    # 积分
+    points: 5
+    # 货币
+    money: 20
+    # 执行指令
+    commands: []
+
+  # 连杀奖励
+  killstreak:
+    # 3连杀
+    '3':
+      title: '&e三连杀！'
+      points: 10
+      money: 50
+      broadcast: '&e{player} 完成了三连杀！'
+    # 5连杀
+    '5':
+      title: '&6五连杀！'
+      points: 20
+      money: 100
+      broadcast: '&6{player} 完成了五连杀！无人能挡！'
+    # 10连杀
+    '10':
+      title: '&c&l十连杀！'
+      points: 50
+      money: 300
+      broadcast: '&c&l{player} 完成了十连杀！传奇！'
+
+# ==================== 成就奖励 ====================
+achievements:
+  # 首次胜利
+  first-win:
+    enabled: true
+    points: 50
+    money: 500
+    commands:
+      - 'give %player% minecraft:diamond_block 1'
+    message: '&a恭喜你首次获得胜利！'
+
+  # 十次胜利
+  ten-wins:
+    enabled: true
+    points: 100
+    money: 1000
+    commands:
+      - 'give %player% minecraft:nether_star 1'
+    message: '&a恭喜你获得第10次胜利！'
+
+  # 百场比赛
+  hundred-games:
+    enabled: true
+    points: 200
+    money: 2000
+    commands:
+      - 'give %player% minecraft:diamond_block 5'
+    message: '&a恭喜你参加了100场比赛！'
+
+# ==================== 积分加成 ====================
+multipliers:
+  # VIP积分加成
+  vip-bonus:
+    # 权限节点 -> 加成倍率
+    'pbr.vip.plays.10': 1.2
+    'pbr.vip.plays.20': 1.5
+    'pbr.vip.plays.30': 2.0
+
+  # 时间段加成（24小时制）
+  time-bonus:
+    enabled: false
+    periods:
+      # 周末加成
+      weekend:
+        enabled: true
+        multiplier: 1.5
+        days: ['SATURDAY', 'SUNDAY']
+      # 高峰时段加成 (18:00-22:00)
+      peak:
+        enabled: true
+        multiplier: 1.3
+        start-hour: 18
+        end-hour: 22
+
+# ==================== 特殊奖励 ====================
+special:
+  # 完美胜利（无死亡）
+  flawless-victory:
+    enabled: true
+    points: 50
+    money: 500
+    broadcast: '&d&l{player} 完成了完美胜利！无一败绩！'
+
+  # 最后击杀（获胜的最后一击）
+  final-kill:
+    enabled: true
+    points: 20
+    money: 100
+    message: '&e你完成了决胜一击！'
+
+  # 生存大师（存活时间最长）
+  survival-master:
+    enabled: true
+    min-duration: 600  # 至少存活10分钟
+    points: 30
+    money: 150
+    message: '&e你是生存大师！'

@@ -1,0 +1,85 @@
+# ==========================================
+#   PokemonBattleRoyale - 标准竞技场世界
+#   经典的大逃杀竞技场配置
+# ==========================================
+
+# ==================== 世界基本信息 ====================
+world:
+  # 是否启用此世界作为模板（true=参与地图池，false=禁用）
+  enabled: true
+
+  # 模板地图名称（服务器根目录下的世界文件夹名）
+  template-world: 'world_arena_template'
+
+  # 世界别名（显示名称）
+  display-name: '&6&l标准竞技场'
+
+  # 世界描述
+  description: '经典的大逃杀竞技场，适合新手和标准对战'
+
+  # 权重（地图池随机选择时的权重，越大越容易被选中）
+  weight: 150
+
+  # 世界难度
+  difficulty: 'normal'
+
+  # 环境类型
+  environment: 'normal'
+
+# ==================== 缩圈中心配置 ====================
+shrink-center:
+  # 模式: fixed=固定坐标, random=随机坐标
+  mode: 'fixed-diagonal'  # fixed-diagonal 与 fixed 效果相同
+  # 模式: random=random, fixed=固定位置, fixed-diagonal=固定对角
+
+  # 固定坐标模式（仅在mode=fixed时生效）
+  fixed:
+    x: 0.0
+    z: 0.0
+
+  # 随机坐标模式（仅当mode=random时生效）
+  random:
+    # 随机范围
+    min-x: -200
+    max-x: 200
+    min-z: -200
+    max-z: 200
+    y: 100
+
+# ==================== 出生点配置 ====================
+spawn:
+  # 出生点模式: random=随机, fixed=固定位置, fixed-diagonal=固定对角
+  mode: 'fixed-diagonal'  # fixed-diagonal 与 fixed 效果相同
+  # 模式: random, fixed=固定位置, fixed-diagonal=固定对角
+  # 模式: random, fixed=固定位置, random-range=随机范围
+
+  # 固定出生点坐标（仅在mode=fixed或fixed-diagonal时生效）
+  location:
+    x: 0.0
+    y: 100.0
+    z: 0.0
+    yaw: 0.0
+    pitch: 0.0
+
+  # 固定出生点对角坐标（仅在mode=fixed-diagonal时生效）
+  fixed-diagonal:
+    corner1:
+      x: 200.0
+      y: 100.0
+      z: 200.0
+      yaw: 0.0
+      pitch: 0.0
+    corner2:
+      x: -200.0
+      y: 100.0
+      z: -200.0
+      yaw: 0.0
+      pitch: 0.0
+
+  # 备用随机范围（如果mode=random时生效）
+  random-range:
+    min-x: -200
+    max-x: 200
+    min-z: -200
+    max-z: 200
+    y: 100
