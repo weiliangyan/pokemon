@@ -231,8 +231,8 @@ public class LootGUIManager {
         int size = config.getInt("gui.size", 54);
         Inventory gui = Bukkit.createInventory(null, size, title);
 
-        // 加载已保存的物品（从loot-system.yml）
-        List<String> itemsNBT = lootSystemConfig.getStringList(category + ".items");
+        // 加载已保存的物品（从loot-system.yml的专用GUI节点）
+        List<String> itemsNBT = lootSystemConfig.getStringList(category + ".gui-items");
         for (int i = 0; i < itemsNBT.size() && i < size; i++) {
             ItemStack item = itemFromBase64(itemsNBT.get(i));
             if (item != null) {
@@ -271,7 +271,7 @@ public class LootGUIManager {
 
         int count = items.size();
 
-        // 保存到loot-system.yml配置
+        // 保存到loot-system.yml配置（专用GUI节点）
         if (!items.isEmpty()) {
             List<String> itemData = new ArrayList<>();
             for (ItemStack item : items) {
@@ -281,9 +281,11 @@ public class LootGUIManager {
                 }
             }
 
-            // 保存物品数据到loot-system.yml
-            lootSystemConfig.set(category + ".items", itemData);
+            // 保存物品数据到专用GUI节点，避免与手写配置冲突
+            lootSystemConfig.set(category + ".gui-items", itemData);
             saveLootSystemConfig();
+
+            plugin.getLogger().info("§a[GUI保存] 已保存 " + count + " 个物品到 " + category + ".gui-items");
         }
 
         // 发送消息
@@ -323,7 +325,7 @@ public class LootGUIManager {
             return;
         }
 
-        lootSystemConfig.set(category + ".items", new ArrayList<>());
+        lootSystemConfig.set(category + ".gui-items", new ArrayList<>());
         saveLootSystemConfig();
 
         String message = config.getString("gui.messages.cleared", "&c已清空 {category} 的所有物品");
@@ -339,9 +341,9 @@ public class LootGUIManager {
     public List<ItemStack> getItems(String category) {
         List<ItemStack> items = new ArrayList<>();
 
-        // 从loot-system.yml中获取物品
-        if (lootSystemConfig.contains(category + ".items")) {
-            List<String> itemsNBT = lootSystemConfig.getStringList(category + ".items");
+        // 从loot-system.yml中获取GUI保存的物品
+        if (lootSystemConfig.contains(category + ".gui-items")) {
+            List<String> itemsNBT = lootSystemConfig.getStringList(category + ".gui-items");
             for (String nbt : itemsNBT) {
                 ItemStack item = itemFromBase64(nbt);
                 if (item != null) {

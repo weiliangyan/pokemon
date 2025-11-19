@@ -15,6 +15,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import org.bukkit.util.io.BukkitObjectInputStream;
+import org.bukkit.util.io.BukkitObjectOutputStream;
+import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 /**
  * 战利品箱管理器
@@ -93,9 +98,8 @@ public class LootChestManager {
                 // 创建奖励组
                 LootCategory category = new LootCategory(groupName, fillChance, minSlots, maxSlots, minStack, maxStack);
 
-                // 加载该奖励组的物品
+                // 1. 加载手写配置的物品（items 节点 - MapList格式）
                 List<Map<?, ?>> itemsList = config.getMapList(groupName + ".items");
-
                 for (Map<?, ?> itemMap : itemsList) {
                     try {
                         String materialName = (String) itemMap.get("material");
@@ -104,7 +108,7 @@ public class LootChestManager {
                             continue;
                         }
 
-                        // 解析物品（现在只有材质字段）
+                        // 解析物品（手写配置格式）
                         LootItem lootItem;
                         if (materialName.startsWith("PIXELMON:")) {
                             // Pixelmon物品
@@ -119,8 +123,50 @@ public class LootChestManager {
                         category.addItem(lootItem);
 
                     } catch (Exception e) {
-                        plugin.getLogger().warning("§c解析奖励组 " + groupName + " 中的物品失败: " + e.getMessage());
+                        plugin.getLogger().warning("§c解析奖励组 " + groupName + " 中的手写物品失败: " + e.getMessage());
                     }
+                }
+
+                // 2. 加载GUI保存的物品（gui-items 节点 - Base64字符串列表）
+                List<String> guiItemsList = config.getStringList(groupName + ".gui-items");
+                if (!guiItemsList.isEmpty()) {
+                    plugin.getLogger().info("§7[GUI加载] 为奖励组 " + groupName + " 加载 " + guiItemsList.size() + " 个GUI保存的物品");
+
+                    for (String base64Item : guiItemsList) {
+                        try {
+                            // 从Base64反序列化ItemStack
+                            ItemStack itemStack = itemFromBase64(base64Item);
+                            if (itemStack != null && itemStack.getType() != Material.AIR) {
+                                // 将ItemStack转换为LootItem
+                                // 这里使用简化的构造，因为GUI保存的物品已经包含了完整信息
+                                LootItem lootItem = new LootItem(
+                                    itemStack.getType(),
+                                    itemStack.getItemMeta() != null ? itemStack.getItemMeta().getDisplayName() : "",
+                                    itemStack.getAmount(),
+                                    itemStack.getAmount(),
+                                    100, // GUI物品默认100%概率
+                                    new ArrayList<>(),
+                                    itemStack.getItemMeta() != null && itemStack.getItemMeta().hasLore() ?
+                                        itemStack.getItemMeta().getLore() : new ArrayList<>()
+                                );
+
+                                category.addItem(lootItem);
+                            }
+                        } catch (Exception e) {
+                            plugin.getLogger().warning("§c解析奖励组 " + groupName + " 中的GUI物品失败: " + e.getMessage());
+                        }
+                    }
+                }
+
+                // 3. 记录加载统计
+                int totalItems = category.getItems().size();
+                if (totalItems > 0) {
+                    String sourceInfo = itemsList.isEmpty() ? "仅GUI物品" :
+                                      guiItemsList.isEmpty() ? "仅手写配置" :
+                                      "手写配置 + GUI物品";
+                    plugin.getLogger().info("§a奖励组 " + groupName + " 已加载 " + totalItems + " 个物品 (" + sourceInfo + ")");
+                } else {
+                    plugin.getLogger().warning("§c奖励组 " + groupName + " 没有加载到任何物品");
                 }
 
                 // 同时添加到两个缓存中（保持向后兼容）
@@ -738,5 +784,25 @@ public class LootChestManager {
      */
     public void reloadConfig() {
         reload();
+    }
+
+    /**
+     * 从Base64字符串反序列化物品（包含完整NBT）
+     * @param data Base64字符串
+     * @return 物品 或 null
+     */
+    private ItemStack itemFromBase64(String data) {
+        try {
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data));
+            BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
+
+            ItemStack item = (ItemStack) dataInput.readObject();
+            dataInput.close();
+
+            return item;
+        } catch (Exception e) {
+            plugin.getLogger().warning("§c无法反序列化物品: " + e.getMessage());
+            return null;
+        }
     }
 }

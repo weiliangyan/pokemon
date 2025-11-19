@@ -1,0 +1,87 @@
+# ==========================================
+#   PokemonBattleRoyale - 战利品系统配置示例
+#   展示手写配置和GUI配置的兼容性
+# ==========================================
+
+# 示例1: 仅手写配置的奖励组
+普通:
+  enabled: true
+  Weight: 10
+  MinSlots: 1
+  MaxSlots: 3
+  MinStack: 1
+  MaxStack: 1
+  # 手写配置格式 - MapList
+  items:
+    - material: IRON_SWORD
+    - material: IRON_PICKAXE
+    - material: COOKED_BEEF
+    - material: BREAD
+  # GUI配置节点为空（尚未使用GUI添加物品）
+  gui-items: []
+
+# 示例2: 仅GUI配置的奖励组
+优品:
+  enabled: true
+  Weight: 5
+  MinSlots: 1
+  MaxSlots: 2
+  MinStack: 1
+  MaxStack: 1
+  # 手写配置为空
+  items: []
+  # GUI配置 - Base64字符串列表（通过 /lootgui open 优品 添加）
+  gui-items:
+    - "rO0ABXNyABpvcmcuYnVra2l0LmludmVudG9yeS5JdGVtU3RhY2sAAAAAAAAAAQIABkkABmFtb3VudEwABG1ldGF0AB5Mb3JnL2J1a2tpdC9pbnZlbnRvcnkvSXRlbU1ldGE7..."
+    # ↑ 这是示例Base64字符串，实际使用时会由GUI自动生成
+
+# 示例3: 混合配置的奖励组（推荐）
+极品:
+  enabled: true
+  Weight: 2
+  MinSlots: 1
+  MaxSlots: 1
+  MinStack: 1
+  MaxStack: 1
+  # 手写配置 - 基础物品
+  items:
+    - material: DIAMOND_SWORD
+    - material: DIAMOND_PICKAXE
+  # GUI配置 - 附魔装备、自定义物品、Pixelmon物品等
+  gui-items:
+    - "rO0ABXNyABpvcmcuYnVra2l0LmludmVudG9yeS5JdGVtU3RhY2sAAAAAAAAAAQIABkkABmFtb3VudEwABG1ldGF0AB5Mb3JnL2J1a2tpdC9pbnZlbnRvcnkvSXRlbU1ldGE7..."
+    # ↑ GUI添加的附魔钻石剑
+
+# ==========================================
+# 🔑 核心要点
+# ==========================================
+
+# 1. 数据格式隔离
+#    - items: 手写配置 (MapList格式)
+#    - gui-items: GUI保存 (Base64字符串列表)
+#    - 两者互不干扰，可以共存
+
+# 2. 读取优先级
+#    - LootChestManager会同时读取两种格式
+#    - 最终合并为一个完整的物品池
+#    - 手写配置和GUI配置的物品权重相同
+
+# 3. GUI操作
+#    - /lootgui open <分类> - 打开GUI管理界面
+#    - 放入物品后关闭GUI自动保存到 gui-items 节点
+#    - 不会覆盖 items 节点中的手写配置
+
+# 4. 推荐工作流
+#    - 基础物品: 使用 items 手写配置（易读易维护）
+#    - 复杂物品: 使用 GUI 配置（附魔、NBT、Pixelmon物品）
+#    - 混合使用: 发挥两种方式的优势
+
+# ==========================================
+# 📋 迁移指南（如果您有旧配置）
+# ==========================================
+
+# 如果您之前使用GUI保存到了 items 节点：
+# 1. 备份当前配置文件
+# 2. 重新使用 /lootgui open <分类> 添加物品
+# 3. 新物品会自动保存到 gui-items 节点
+# 4. items 节点可以保留手写配置或清空
