@@ -41,9 +41,6 @@ public class LootChestManager {
     // loot-system.yml 奖励组缓存
     private final Map<String, LootCategory> lootSystemCategories = new HashMap<>();
 
-    // GUI管理的物品缓存（中文名称）
-    private final Map<String, List<ItemStack>> guiManagedItems = new HashMap<>();
-
     // 多世界配置管理器
     private WorldConfigManager worldConfigManager;
 
@@ -182,39 +179,7 @@ public class LootChestManager {
         }
     }
 
-    /**
-     * 从 LootGUIManager 加载GUI管理的物品
-     * 直接使用中文箱子类型名称:
-     * - putong (普通)
-     * - youpin (优品)
-     * - jipin (极品)
-     */
-    private void loadGUIManagedItems() {
-        LootGUIManager guiManager = plugin.getLootGUIManager();
-        if (guiManager == null) {
-            plugin.getLogger().warning("§cLootGUIManager 未初始化,跳过GUI物品加载");
-            return;
-        }
-
-        // 清空缓存
-        guiManagedItems.clear();
-
-        // 直接使用中文箱子类型名称
-        guiManagedItems.put("putong", guiManager.getItems("putong"));
-        guiManagedItems.put("youpin", guiManager.getItems("youpin"));
-        guiManagedItems.put("jipin", guiManager.getItems("jipin"));
-
-        int totalItems = guiManagedItems.values().stream()
-                .mapToInt(List::size)
-                .sum();
-
-        if (totalItems > 0) {
-            plugin.getLogger().info("§a已加载 " + totalItems + " 个GUI管理的物品");
-            plugin.getLogger().info("§7  - 普通箱子: " + guiManagedItems.get("putong").size() + " 个物品");
-            plugin.getLogger().info("§7  - 优品箱子: " + guiManagedItems.get("youpin").size() + " 个物品");
-            plugin.getLogger().info("§7  - 极品箱子: " + guiManagedItems.get("jipin").size() + " 个物品");
-        }
-    }
+    // 传统GUI系统已移除，现在统一使用loot-system.yml
 
     /**
      * 填充游戏世界的所有箱子
@@ -286,12 +251,7 @@ public class LootChestManager {
             return; // loot-system 系统成功填充
         }
 
-        // 回退到传统GUI系统
-        if (tryTraditionalGUIFill(inventory, chestType)) {
-            return; // 传统GUI系统成功填充
-        }
-
-        // 最后回退到基础配置填充
+        // 回退到基础配置填充
         fallbackToConfigFill(inventory);
     }
 
@@ -469,31 +429,7 @@ public class LootChestManager {
         return null;
     }
 
-    /**
-     * 尝试使用传统GUI系统填充
-     */
-    private boolean tryTraditionalGUIFill(Inventory inventory, String chestType) {
-        List<ItemStack> guiItems = guiManagedItems.get(chestType);
-        if (guiItems == null || guiItems.isEmpty()) {
-            return false;
-        }
-
-        // 使用传统等概率随机
-        List<ItemStack> selectedItems = new ArrayList<>();
-        for (int i = 0; i < guiItems.size() && i < inventory.getSize(); i++) {
-            ItemStack randomItem = guiItems.get(random.nextInt(guiItems.size()));
-            selectedItems.add(randomItem.clone());
-        }
-
-        // 放置物品
-        placeItemsInInventory(inventory, selectedItems);
-
-        if (plugin.getConfig().getBoolean("debug.enabled", false)) {
-            plugin.getLogger().info("§e[Debug] 使用传统GUI系统填充 " + chestType + " 箱子: " + selectedItems.size() + " 个物品");
-        }
-
-        return true;
-    }
+    // 传统GUI系统已删除
 
     /**
      * 回退到配置文件填充
