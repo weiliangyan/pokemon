@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 /**
@@ -25,9 +26,85 @@ import java.util.UUID;
 public class PixelmonBattleListener implements Listener {
 
     private final Main plugin;
+    private final boolean pixelmonAvailable;
+    private static final String[] REQUIRED_METHODS = {
+        "getLoser", "getWinner", "getFleer", "getPlayer", "getUUID",
+        "getParty", "countPokemon", "getTeam", "isFainted",
+        "getDisplayName", "getSpecies", "getLocalizedName", "set"
+    };
 
     public PixelmonBattleListener(Main plugin) {
         this.plugin = plugin;
+        this.pixelmonAvailable = checkPixelmonAPI();
+    }
+
+    /**
+     * 检查Pixelmon API可用性
+     */
+    private boolean checkPixelmonAPI() {
+        try {
+            plugin.getLogger().info("§a正在检查Pixelmon API兼容性...");
+
+            // 检查Pixelmon主类
+            Class<?> pixelmonClass = Class.forName("com.pixelmonmod.pixelmon.Pixelmon");
+            plugin.getLogger().info("§a✓ Pixelmon主类已找到");
+
+            // 检查存储管理器
+            Object storageManager = pixelmonClass.getField("storageManager").get(null);
+            if (storageManager != null) {
+                plugin.getLogger().info("§a✓ 存储管理器已找到");
+
+                // 检查关键方法
+                Method getPartyMethod = storageManager.getClass().getMethod("getParty", java.util.UUID.class);
+                if (getPartyMethod != null) {
+                    plugin.getLogger().info("§a✓ getParty方法已找到");
+                }
+            }
+
+            // 检查战斗事件类（尝试多个可能的类名）
+            String[] possibleEventClasses = {
+                "com.pixelmonmod.pixelmon.api.events.battles.BattleEndEvent",
+                "com.pixelmonmod.pixelmon.battles.api.event.BattleEndedEvent",
+                "com.pixelmonmod.pixelmon.api.events.BattleEndEvent"
+            };
+
+            boolean battleEventFound = false;
+            for (String eventClass : possibleEventClasses) {
+                try {
+                    Class.forName(eventClass);
+                    plugin.getLogger().info("§a✓ 战斗事件类已找到: " + eventClass);
+                    battleEventFound = true;
+                    break;
+                } catch (ClassNotFoundException e) {
+                    // 继续尝试下一个类名
+                }
+            }
+
+            if (!battleEventFound) {
+                plugin.getLogger().warning("§c未找到任何已知的战斗事件类，战斗监听可能无法正常工作");
+            }
+
+            plugin.getLogger().info("§aPixelmon API检查完成，战斗监听器已启用");
+            return true;
+
+        } catch (ClassNotFoundException e) {
+            plugin.getLogger().severe("§cPixelmon主类未找到！请确保安装了正确版本的Pixelmon插件");
+            plugin.getLogger().severe("§cPokemonBattleRoyale插件的战斗功能将被禁用");
+            return false;
+        } catch (NoSuchFieldException e) {
+            plugin.getLogger().severe("§cPixelmon API结构已更改！找不到storageManager字段");
+            plugin.getLogger().severe("§c请检查Pixelmon版本兼容性，战斗功能将被禁用");
+            return false;
+        } catch (NoSuchMethodException e) {
+            plugin.getLogger().severe("§cPixelmon API方法已更改！找不到必需的方法: " + e.getMessage());
+            plugin.getLogger().severe("§c请检查Pixelmon版本兼容性，战斗功能将被禁用");
+            return false;
+        } catch (Exception e) {
+            plugin.getLogger().severe("§c检查Pixelmon API时发生未知错误: " + e.getMessage());
+            plugin.getLogger().severe("§c战斗功能将被禁用以防止错误");
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**
@@ -39,6 +116,11 @@ public class PixelmonBattleListener implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBattleEnd(Object event) {
+        // 检查Pixelmon API是否可用
+        if (!pixelmonAvailable) {
+            return;
+        }
+
         try {
             // 使用反射获取战斗结果
             Class<?> eventClass = event.getClass();
@@ -87,8 +169,20 @@ public class PixelmonBattleListener implements Listener {
                     healWinnerPokemon(winnerUUID);
                 }
             } else {
-                // 仅发送消息
-                loserPlayer.sendMessage(getMessage("battle.defeat"));
+                // 开局阶段：删除一只宝可梦
+                boolean pokemonRemoved = removeRandomPokemon(loserPlayer);
+
+                if (pokemonRemoved) {
+                    loserPlayer.sendMessage(getMessage("battle.defeat-pokemon-removed"));
+                    plugin.getLogger().info("玩家 " + loserPlayer.getName() + " 战败，已删除一只宝可梦");
+
+                    // 立即检查宝可梦数量，可能需要淘汰
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        checkPlayerPokemonCount(loserPlayer);
+                    }, 10L); // 延迟半秒执行，确保删除完成
+                } else {
+                    loserPlayer.sendMessage(getMessage("battle.defeat"));
+                }
             }
 
         } catch (Exception e) {
@@ -102,6 +196,10 @@ public class PixelmonBattleListener implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBattleFlee(Object event) {
+        if (!pixelmonAvailable) {
+            return;
+        }
+
         try {
             Class<?> eventClass = event.getClass();
             Object fleer = eventClass.getMethod("getFleer").invoke(event);
@@ -142,6 +240,10 @@ public class PixelmonBattleListener implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBattleForceEnd(Object event) {
+        if (!pixelmonAvailable) {
+            return;
+        }
+
         try {
             // 尝试获取战斗参与者
             Class<?> eventClass = event.getClass();
@@ -179,6 +281,10 @@ public class PixelmonBattleListener implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBattleDecline(Object event) {
+        if (!pixelmonAvailable) {
+            return;
+        }
+
         try {
             Class<?> eventClass = event.getClass();
 
@@ -225,6 +331,10 @@ public class PixelmonBattleListener implements Listener {
      * 这个方法需要定时执行或在特定事件触发
      */
     public void checkPlayerPokemonCount(Player player) {
+        if (!pixelmonAvailable) {
+            return;
+        }
+
         try {
             Game game = plugin.getGameManager().getPlayerGame(player);
             if (game == null) {
@@ -246,6 +356,104 @@ public class PixelmonBattleListener implements Listener {
         } catch (Exception e) {
             plugin.getLogger().warning("§c检查宝可梦数量时出错: " + e.getMessage());
         }
+    }
+
+    /**
+     * 删除玩家的一只随机宝可梦（开局阶段惩罚）
+     */
+    private boolean removeRandomPokemon(Player player) {
+        if (!pixelmonAvailable) {
+            return false;
+        }
+
+        try {
+            // 获取玩家的宝可梦存储
+            Class<?> pixelmonClass = Class.forName("com.pixelmonmod.pixelmon.Pixelmon");
+            Object storageManager = pixelmonClass.getField("storageManager").get(null);
+
+            Object partyStorage = storageManager.getClass()
+                    .getMethod("getParty", java.util.UUID.class)
+                    .invoke(storageManager, player.getUniqueId());
+
+            if (partyStorage != null) {
+                // 获取宝可梦数量
+                Integer count = (Integer) partyStorage.getClass()
+                        .getMethod("countPokemon")
+                        .invoke(partyStorage);
+
+                if (count != null && count > 0) {
+                    // 获取所有宝可梦
+                    java.util.List<Object> pokemonList = (java.util.List<Object>) partyStorage.getClass()
+                            .getMethod("getTeam")
+                            .invoke(partyStorage);
+
+                    // 过滤出非空的宝可梦
+                    java.util.List<Object> validPokemon = new java.util.ArrayList<>();
+                    for (Object pokemon : pokemonList) {
+                        if (pokemon != null) {
+                            // 检查宝可梦是否存活或存在
+                            try {
+                                Boolean isFainted = (Boolean) pokemon.getClass()
+                                        .getMethod("isFainted")
+                                        .invoke(pokemon);
+                                if (isFainted != null && !isFainted) {
+                                    validPokemon.add(pokemon);
+                                }
+                            } catch (Exception e) {
+                                // 如果无法检查是否昏厥，只要不是null就认为是有效宝可梦
+                                validPokemon.add(pokemon);
+                            }
+                        }
+                    }
+
+                    if (!validPokemon.isEmpty()) {
+                        // 随机选择一只宝可梦删除
+                        Object targetPokemon = validPokemon.get(
+                            java.util.concurrent.ThreadLocalRandom.current().nextInt(validPokemon.size())
+                        );
+
+                        // 获取宝可梦的显示名称用于日志
+                        String pokemonName = "未知宝可梦";
+                        try {
+                            pokemonName = (String) targetPokemon.getClass()
+                                    .getMethod("getDisplayName")
+                                    .invoke(targetPokemon);
+                        } catch (Exception e) {
+                            try {
+                                // 尝试获取Species名称
+                                Object species = targetPokemon.getClass()
+                                        .getMethod("getSpecies")
+                                        .invoke(targetPokemon);
+                                if (species != null) {
+                                    pokemonName = (String) species.getClass()
+                                            .getMethod("getLocalizedName")
+                                            .invoke(species);
+                                }
+                            } catch (Exception ex) {
+                                // 使用默认名称
+                            }
+                        }
+
+                        // 从队伍中移除宝可梦
+                        partyStorage.getClass()
+                                .getMethod("set", int.class, Object.class)
+                                .invoke(partyStorage, pokemonList.indexOf(targetPokemon), null);
+
+                        player.sendMessage(ChatColor.YELLOW + "你的宝可梦 " + ChatColor.RED + pokemonName +
+                                         ChatColor.YELLOW + " 因战斗失败被删除了！");
+
+                        plugin.getLogger().info("已删除玩家 " + player.getName() + " 的宝可梦: " + pokemonName);
+                        return true;
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            plugin.getLogger().warning("§c删除玩家宝可梦时出错: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     /**

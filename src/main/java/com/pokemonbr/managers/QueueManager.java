@@ -43,6 +43,9 @@ public class QueueManager {
     // 队列ID计数器
     private int queueIdCounter = 1;
 
+    // 正在创建的队列类型集合（防止并发创建）
+    private final Set<QueueType> creatingQueues = ConcurrentHashMap.newKeySet();
+
     public QueueManager(Main plugin, WorldTemplateManager worldTemplateManager) {
         this.plugin = plugin;
         this.worldTemplateManager = worldTemplateManager;
@@ -123,8 +126,15 @@ public class QueueManager {
         // 查找可用队列
         MatchQueue availableQueue = findAvailableQueue(targetQueueType);
 
-        // 如果没有可用队列，创建新队列
+        // 如果没有可用队列，检查是否正在创建中
         if (availableQueue == null) {
+            if (creatingQueues.contains(targetQueueType)) {
+                // 有同类型队列正在创建中，提示等待
+                sendMessage(player, "queue.preparing-world");
+                sendMessage(player, "queue.world-creation-in-progress");
+                return true;
+            }
+
             sendMessage(player, "queue.preparing-world");
             createNewQueueAsync(player, targetQueueType);
             return true;
@@ -201,6 +211,9 @@ public class QueueManager {
      * @param queueType 队列类型
      */
     private void createNewQueueAsync(Player player, QueueType queueType) {
+        // 标记此类型队列正在创建中
+        creatingQueues.add(queueType);
+
         int minPlayers = plugin.getConfig().getInt("queue.min-players", 2);
         String queueConfigPath = "queue.queues." + queueType.getConfigKey();
         int maxPlayers = plugin.getConfig().getInt(queueConfigPath + ".max-players", 20);
@@ -241,6 +254,7 @@ public class QueueManager {
             if (world == null) {
                 // 世界创建失败
                 Bukkit.getScheduler().runTask(plugin, () -> {
+                    creatingQueues.remove(queueType);
                     queues.remove(queueId);
                     sendMessage(player, "queue.world-creation-failed");
                     plugin.getLogger().severe("§c" + newQueue.getFullQueueName() + " 世界创建失败！");
@@ -250,28 +264,43 @@ public class QueueManager {
 
             // 在主线程绑定世界并添加玩家
             Bukkit.getScheduler().runTask(plugin, () -> {
-                newQueue.bindWorld(world);
-                plugin.getLogger().info("§a" + newQueue.getFullQueueName() + " 已绑定世界: " + world.getName());
+                try {
+                    newQueue.bindWorld(world);
+                    plugin.getLogger().info("§a" + newQueue.getFullQueueName() + " 已绑定世界: " + world.getName());
 
-                // 添加玩家到队列
-                if (newQueue.addPlayer(player)) {
-                    playerQueueMap.put(player.getUniqueId(), queueId);
+                    // 添加玩家到队列
+                    if (newQueue.addPlayer(player)) {
+                        playerQueueMap.put(player.getUniqueId(), queueId);
 
-                    sendMessage(player, "queue.joined",
-                            "{queue}", newQueue.getFullQueueName(),
-                            "{current}", String.valueOf(newQueue.getPlayerCount()),
-                            "{max}", String.valueOf(newQueue.getMaxPlayers()));
+                        sendMessage(player, "queue.joined",
+                                "{queue}", newQueue.getFullQueueName(),
+                                "{current}", String.valueOf(newQueue.getPlayerCount()),
+                                "{max}", String.valueOf(newQueue.getMaxPlayers()));
 
-                    // 如果是计分模式，显示剩余次数
-                    if (queueType.isRanked()) {
-                        int remaining = plugin.getPlayerDataManager().getRemainingPlays(player);
-                        sendMessage(player, "queue.plays-remaining",
-                                "{plays}", String.valueOf(remaining));
+                        // 如果是计分模式，显示剩余次数
+                        if (queueType.isRanked()) {
+                            int remaining = plugin.getPlayerDataManager().getRemainingPlays(player);
+                            sendMessage(player, "queue.plays-remaining",
+                                    "{plays}", String.valueOf(remaining));
+                        }
+                    } else {
+                        sendMessage(player, "queue.join-failed");
                     }
-                } else {
-                    sendMessage(player, "queue.join-failed");
+                } finally {
+                    // 无论成功与否，都要移除创建标记
+                    creatingQueues.remove(queueType);
                 }
             });
+        }).exceptionally(throwable -> {
+            // 处理异步操作中的异常
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                creatingQueues.remove(queueType);
+                queues.remove(queueId);
+                sendMessage(player, "queue.world-creation-failed");
+                plugin.getLogger().severe("§c" + newQueue.getFullQueueName() + " 世界创建时发生异常: " + throwable.getMessage());
+                throwable.printStackTrace();
+            });
+            return null;
         });
     }
 

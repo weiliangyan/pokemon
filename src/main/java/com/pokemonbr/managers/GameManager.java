@@ -78,6 +78,11 @@ public class GameManager {
                 } else {
                     // 对边界外的玩家造成伤害
                     plugin.getBorderShrinkManager().damagePlayersOutsideBorder(game);
+
+                    // 定期检查存活玩家的宝可梦数量（每30秒检查一次）
+                    if (game.getGameTime() % 600 == 0) { // 30秒 = 600 ticks
+                        checkAllPlayersPokemonCount(game);
+                    }
                 }
                 break;
 
@@ -88,6 +93,11 @@ public class GameManager {
                 } else {
                     // 对边界外的玩家造成伤害
                     plugin.getBorderShrinkManager().damagePlayersOutsideBorder(game);
+
+                    // 最终阶段更频繁检查（每15秒检查一次）
+                    if (game.getGameTime() % 300 == 0) { // 15秒 = 300 ticks
+                        checkAllPlayersPokemonCount(game);
+                    }
                 }
                 break;
 
@@ -552,6 +562,23 @@ public class GameManager {
         }
 
         plugin.getLogger().info("§a所有游戏已停止");
+    }
+
+    /**
+     * 检查所有存活玩家的宝可梦数量
+     * @param game 游戏实例
+     */
+    private void checkAllPlayersPokemonCount(Game game) {
+        // 异步执行检查，避免阻塞主线程
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            for (UUID playerId : new ArrayList<>(game.getAlivePlayers())) {
+                Player player = Bukkit.getPlayer(playerId);
+                if (player != null && player.isOnline()) {
+                    // 调用 PixelmonBattleListener 的检查方法
+                    plugin.getPixelmonBattleListener().checkPlayerPokemonCount(player);
+                }
+            }
+        });
     }
 
     /**

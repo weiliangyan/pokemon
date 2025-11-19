@@ -337,21 +337,72 @@ public class PlayerDAO {
     /**
      * 检查是否需要重置玩家今日游玩次数
      * @param data 玩家数据
-     * @param resetHours 重置间隔小时数
+     * @param resetHours 重置间隔小时数（保持向后兼容）
      * @return 是否已重置
      */
     public boolean checkAndResetPlaysToday(PlayerData data, int resetHours) {
-        long now = System.currentTimeMillis();
-        long lastReset = data.getLastReset().getTime();
-        long hoursPassed = (now - lastReset) / (1000 * 60 * 60);
+        // 检查是否使用每日固定时间重置
+        int resetHour = plugin.getConfig().getInt("play-limit.reset-time", 4);
+        boolean useDailyReset = plugin.getConfig().getBoolean("play-limit.use-daily-reset", true);
 
-        if (hoursPassed >= resetHours) {
-            data.resetPlaysToday();
-            savePlayerDataAsync(data);
-            return true;
+        long now = System.currentTimeMillis();
+        java.util.Calendar nowCal = java.util.Calendar.getInstance();
+        nowCal.setTimeInMillis(now);
+
+        java.util.Calendar lastResetCal = java.util.Calendar.getInstance();
+        lastResetCal.setTime(data.getLastReset());
+
+        if (useDailyReset) {
+            // 每日固定时间重置模式
+            // 检查是否跨越了重置时间点
+            int currentHour = nowCal.get(java.util.Calendar.HOUR_OF_DAY);
+            int lastResetHour = lastResetCal.get(java.util.Calendar.HOUR_OF_DAY);
+
+            // 检查是否是不同的天数，或者当前时间已经过了重置点但上次重置是在重置点之前
+            if (!isSameDay(nowCal, lastResetCal) ||
+                (currentHour >= resetHour && lastResetHour < resetHour)) {
+
+                // 调整到当天的重置时间
+                java.util.Calendar todayReset = java.util.Calendar.getInstance();
+                todayReset.set(java.util.Calendar.HOUR_OF_DAY, resetHour);
+                todayReset.set(java.util.Calendar.MINUTE, 0);
+                todayReset.set(java.util.Calendar.SECOND, 0);
+                todayReset.set(java.util.Calendar.MILLISECOND, 0);
+
+                // 如果当前时间还在今天的重置时间之前，使用昨天的重置时间
+                if (nowCal.before(todayReset)) {
+                    todayReset.add(java.util.Calendar.DAY_OF_MONTH, -1);
+                }
+
+                // 只有当上次重置时间早于今天的重置时间时才重置
+                if (lastResetCal.before(todayReset)) {
+                    data.resetPlaysToday();
+                    savePlayerDataAsync(data);
+                    plugin.getLogger().fine("玩家 " + data.getPlayerName() + " 的每日游玩次数已重置（每日固定时间模式）");
+                    return true;
+                }
+            }
+        } else {
+            // 原有的间隔小时数模式（向后兼容）
+            long hoursPassed = (now - data.getLastReset().getTime()) / (1000 * 60 * 60);
+
+            if (hoursPassed >= resetHours) {
+                data.resetPlaysToday();
+                savePlayerDataAsync(data);
+                plugin.getLogger().fine("玩家 " + data.getPlayerName() + " 的每日游玩次数已重置（间隔小时模式）");
+                return true;
+            }
         }
 
         return false;
+    }
+
+    /**
+     * 检查两个Calendar对象是否是同一天
+     */
+    private boolean isSameDay(java.util.Calendar cal1, java.util.Calendar cal2) {
+        return cal1.get(java.util.Calendar.YEAR) == cal2.get(java.util.Calendar.YEAR) &&
+               cal1.get(java.util.Calendar.DAY_OF_YEAR) == cal2.get(java.util.Calendar.DAY_OF_YEAR);
     }
 
     /**

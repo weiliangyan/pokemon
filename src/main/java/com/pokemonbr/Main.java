@@ -35,6 +35,7 @@ public class Main extends JavaPlugin {
     private com.pokemonbr.managers.SimpleCustomCategoryManager simpleCustomCategoryManager;
     private WorldConfigManager worldConfigManager;
     private PermissionManager permissionManager;
+    private com.pokemonbr.listeners.PixelmonBattleListener pixelmonBattleListener;
 
     @Override
     public void onEnable() {
@@ -267,8 +268,8 @@ public class Main extends JavaPlugin {
 
         // 注册Pixelmon战斗监听器（如果Pixelmon可用）
         if (getServer().getPluginManager().getPlugin("Pixelmon") != null) {
-            getServer().getPluginManager().registerEvents(
-                    new com.pokemonbr.listeners.PixelmonBattleListener(this), this);
+            pixelmonBattleListener = new com.pokemonbr.listeners.PixelmonBattleListener(this);
+            getServer().getPluginManager().registerEvents(pixelmonBattleListener, this);
             getLogger().info("§aPixelmon战斗监听器已注册");
         }
 
@@ -455,5 +456,12 @@ public class Main extends JavaPlugin {
      */
     public CustomCategoryManager getCustomCategoryManager() {
         return customCategoryManager;
+    }
+
+    /**
+     * 获取Pixelmon战斗监听器
+     */
+    public com.pokemonbr.listeners.PixelmonBattleListener getPixelmonBattleListener() {
+        return pixelmonBattleListener;
     }
 }

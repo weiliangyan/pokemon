@@ -39,6 +39,11 @@ queue:
   match-found: '&a匹配成功！正在传送到游戏世界...'
   teleporting: '&e正在传送...'
 
+  # 世界创建
+  preparing-world: '&e正在准备游戏世界，请稍候...'
+  world-creation-in-progress: '&e已有同类型队列正在准备中，请稍等片刻'
+  world-creation-failed: '&c游戏世界创建失败，请稍后重试或联系管理员'
+
 # ==================== 游戏开始消息 ====================
 game:
   # 游戏开始
@@ -82,6 +87,7 @@ shrink:
 battle:
   # 战斗监听
   defeat: '&c你在宝可梦对战中战败了！'
+  defeat-pokemon-removed: '&c你在宝可梦对战中战败了！&6作为惩罚，你失去了一只宝可梦！'
   fled: '&c你从战斗中逃跑了！'
   declined: '&c你拒绝了对战邀请！'
   force-ended: '&c战斗被强制结束了！'
